@@ -161,3 +161,26 @@ insert into campanhas (nome,origem,cliente,verba,gasto,leads,cpl,roas,status) va
  ('Dissenti4l — Remarketing site','agencia',null,2000,900,18,50.00,8.0,'Ativa'),
  ('Captação - Instagram','cliente','Clínica Monte Sinai',15000,10200,320,31.87,4.1,'Ativa'),
  ('Leads Médicos','cliente','Instituto ABC',8000,5500,180,30.55,3.0,'Ativa');
+
+-- ----------- ONBOARDING (etapas editáveis) -----------
+create table if not exists onboarding_etapas (
+  id        bigint generated always as identity primary key,
+  texto     text not null,
+  feito     boolean default false,
+  ordem     int default 0,
+  criado_em timestamptz default now()
+);
+alter table onboarding_etapas enable row level security;
+drop policy if exists "auth_all" on onboarding_etapas;
+create policy "auth_all" on onboarding_etapas for all to authenticated using (true) with check (true);
+insert into onboarding_etapas (texto, ordem) values
+ ('Briefing preenchido', 1),
+ ('Acesso ao BM concedido', 2),
+ ('Pixel instalado e testado', 3),
+ ('Pixel Events confirmados', 4),
+ ('Número WhatsApp configurado', 5),
+ ('CRM conectado', 6),
+ ('Reunião de kick-off realizada', 7),
+ ('Plano de mídia aprovado', 8),
+ ('Primeira campanha criada', 9),
+ ('Relatório de acesso enviado ao cliente', 10);
