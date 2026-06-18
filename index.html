@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dissenti4l · Agency OS</title>
+
+<!-- ============================================================
+     CONFIGURAÇÕES — edite aqui para personalizar
+     ============================================================ -->
+<style>
+:root {
+  /* CORES — altere aqui */
+  --primary:       #1e40af;   /* azul principal */
+  --primary-light: #3b82f6;   /* azul claro */
+  --primary-xlight:#eff6ff;   /* fundo azul suave */
+  --bg:            #f5f7fa;   /* fundo geral (off-white azulado) */
+  --surface:       #ffffff;   /* cards */
+  --border:        #e2e8f0;   /* bordas */
+  --text:          #0f172a;   /* texto principal */
+  --text-2:        #475569;   /* texto secundário */
+  --text-3:        #94a3b8;   /* texto terciário */
+  --success:       #10b981;
+  --success-bg:    #ecfdf5;
+  --danger:        #ef4444;
+  --danger-bg:     #fef2f2;
+  --warning:       #f59e0b;
+  --warning-bg:    #fffbeb;
+
+  /* TIPOGRAFIA */
+  --font-ui: 'Inter', 'Helvetica Neue', sans-serif;
+  --font-heading: 'Georgia', 'Times New Roman', serif;
+
+  /* LAYOUT */
+  --sidebar-w: 220px;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+}
+
+/* ============ RESET ============ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-ui); background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; display: flex; min-height: 100vh; }
+
+/* ============ ÍCONES SVG ============ */
+.icon { width: 1em; height: 1em; display: inline-block; vertical-align: -0.14em; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.nav-icon .icon { width: 17px; height: 17px; vertical-align: middle; }
+.card-icon .icon, .card-icon { width: 14px; height: 14px; }
+.icon-lg { width: 26px; height: 26px; }
+.icon-btn { background: transparent; border: none; cursor: pointer; color: var(--text-3); padding: 4px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; transition: all .15s; }
+.icon-btn:hover { background: var(--bg); color: var(--primary); }
+.icon-btn.danger:hover { background: var(--danger-bg); color: var(--danger); }
+
+/* ============ SIDEBAR ============ */
+#sidebar {
+  width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100;
+}
+.sidebar-brand {
+  padding: 20px 16px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-logo {
+  width: 32px; height: 32px; background: var(--primary); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 14px; flex-shrink: 0;
+}
+.sidebar-name { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.2; }
+.sidebar-sub  { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: .8px; }
+
+.nav-section { padding: 16px 16px 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-3); }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 16px;
+  color: var(--text-2); cursor: pointer; border-radius: 0; font-size: 13px; transition: all .15s;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover { background: var(--primary-xlight); color: var(--primary); }
+.nav-item.active { background: var(--primary-xlight); color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
+.nav-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+.nav-badge { margin-left: auto; background: var(--primary); color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 10px; }
+
+.sidebar-footer { margin-top: auto; padding: 12px 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-3); }
+
+/* ============ MAIN ============ */
+#main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ============ TOPBAR ============ */
+#topbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar-title { font-size: 15px; font-weight: 600; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.topbar-date { font-size: 12px; color: var(--text-3); }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius); font-size: 12px; font-weight: 500; cursor: pointer; border: none; transition: all .15s; font-family: var(--font-ui); }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: #1e3a8a; }
+.btn-outline { background: transparent; color: var(--text-2); border: 1px solid var(--border); }
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+/* ============ CONTENT ============ */
+#content { padding: 28px; flex: 1; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ============ BANNER ============ */
+.banner {
+  border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; position: relative;
+  height: 140px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  display: flex; align-items: flex-end;
+}
+.banner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .35; }
+.banner-content { position: relative; padding: 20px 24px; color: #fff; }
+.banner-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; opacity: .8; margin-bottom: 4px; font-weight: 600; }
+.banner-title { font-family: var(--font-heading); font-size: 26px; font-weight: 400; letter-spacing: -.5px; }
+.banner-title em { font-style: italic; opacity: .9; }
+.banner-upload { position: absolute; top: 12px; right: 12px; }
+.btn-upload { background: rgba(255,255,255,.2); color: #fff; border: 1px solid rgba(255,255,255,.3); backdrop-filter: blur(4px); }
+.btn-upload:hover { background: rgba(255,255,255,.35); }
+
+/* ============ CARDS ============ */
+.grid { display: grid; gap: 16px; }
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: 1fr 1fr 1fr; }
+.g4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.g5 { grid-template-columns: repeat(5, 1fr); }
+.g-auto { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.card-sm { padding: 14px 16px; }
+.card-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-3); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.card-icon { font-size: 14px; }
+.card-value { font-size: 26px; font-weight: 300; letter-spacing: -1px; color: var(--text); line-height: 1; margin-bottom: 6px; }
+.card-value.big { font-size: 36px; }
+.card-value.success { color: var(--success); }
+.card-value.danger  { color: var(--danger); }
+.card-meta { font-size: 11px; color: var(--text-3); display: flex; align-items: center; gap: 6px; }
+
+.badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; font-family: var(--font-ui); }
+.badge-green   { background: var(--success-bg); color: var(--success); }
+.badge-red     { background: var(--danger-bg);  color: var(--danger); }
+.badge-orange  { background: var(--warning-bg); color: var(--warning); }
+.badge-blue    { background: var(--primary-xlight); color: var(--primary); }
+.badge-gray    { background: var(--bg); color: var(--text-2); }
+
+/* ============ META / PROGRESSO ============ */
+.meta-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+.meta-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.meta-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.meta-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.meta-numbers { text-align: right; }
+.meta-atual { font-size: 28px; font-weight: 300; letter-spacing: -1px; color: var(--primary); }
+.meta-goal  { font-size: 12px; color: var(--text-3); }
+.progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+.progress-fill { height: 100%; border-radius: 4px; transition: width .6s ease; }
+.progress-fill.blue    { background: var(--primary-light); }
+.progress-fill.green   { background: var(--success); }
+.progress-fill.danger  { background: var(--danger); }
+.progress-fill.warning { background: var(--warning); }
+.progress-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-3); }
+
+.falta-card {
+  background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%);
+  color: #fff; border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow);
+}
+.falta-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; opacity: .8; margin-bottom: 8px; font-weight: 600; }
+.falta-value { font-size: 40px; font-weight: 300; letter-spacing: -2px; line-height: 1; margin-bottom: 6px; }
+.falta-sub { font-size: 12px; opacity: .75; }
+
+/* ============ TENDÊNCIA DO DIA ============ */
+.dia-card { border-radius: var(--radius); padding: 16px 20px; display: flex; align-items: center; gap: 14px; }
+.dia-card.positivo { background: var(--success-bg); border: 1px solid #a7f3d0; }
+.dia-card.negativo { background: var(--danger-bg);  border: 1px solid #fca5a5; }
+.dia-icon { font-size: 28px; }
+.dia-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; }
+.dia-value { font-size: 22px; font-weight: 600; letter-spacing: -.5px; }
+.dia-card.positivo .dia-value { color: var(--success); }
+.dia-card.negativo .dia-value { color: var(--danger); }
+.dia-meta { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+/* ============ SECTION HEADERS ============ */
+.section-hd { display: flex; align-items: center; justify-content: space-between; margin: 28px 0 14px; }
+.section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--text-2); display: flex; align-items: center; gap: 8px; }
+.section-title::before { content: ''; display: block; width: 3px; height: 14px; background: var(--primary); border-radius: 2px; }
+
+/* ============ TABLE ============ */
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--text-3); padding: 10px 16px; background: var(--bg); border-bottom: 1px solid var(--border); text-align: left; }
+td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--primary-xlight); }
+.td-name { font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.avatar { width: 28px; height: 28px; border-radius: 6px; background: var(--primary); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+
+/* ============ KANBAN ============ */
+.kanban { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 12px; }
+.kanban-col { min-width: 220px; max-width: 220px; }
+.kanban-hd { padding: 8px 10px; border-radius: 6px 6px 0 0; display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; }
+.kanban-body { background: var(--bg); border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; padding: 8px; min-height: 200px; }
+.kanban-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; transition: box-shadow .15s; }
+.kanban-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.kanban-card-client { font-size: 9px; text-transform: uppercase; letter-spacing: .8px; color: var(--text-3); margin-bottom: 4px; }
+.kanban-card-title { font-size: 12px; font-weight: 500; line-height: 1.4; margin-bottom: 8px; }
+.kanban-card-footer { display: flex; align-items: center; justify-content: space-between; }
+
+/* ============ PILLS / FILTROS ============ */
+.filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+.filter-pill { padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border); font-size: 12px; cursor: pointer; background: var(--surface); color: var(--text-2); transition: all .15s; font-family: var(--font-ui); }
+.filter-pill:hover { border-color: var(--primary); color: var(--primary); }
+.filter-pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ============ INPUT / FORM ============ */
+input, select, textarea { font-family: var(--font-ui); font-size: 13px; border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; background: var(--surface); color: var(--text); outline: none; width: 100%; transition: border-color .15s; }
+input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
+label { font-size: 11px; font-weight: 600; color: var(--text-2); display: block; margin-bottom: 4px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { margin-bottom: 14px; }
+
+/* ============ MODAL ============ */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: 12px; padding: 28px; width: 480px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
+.modal-title { font-size: 17px; font-weight: 700; margin-bottom: 20px; }
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+/* ============ CHECKLIST ============ */
+.checklist-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.checklist-item:last-child { border-bottom: none; }
+.check-box { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 4px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; margin-top: 1px; }
+.check-box.done { background: var(--success); border-color: var(--success); color: #fff; }
+.check-label { font-size: 13px; }
+.check-label.done-text { text-decoration: line-through; color: var(--text-3); }
+.check-meta { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+/* ============ SETTINGS / METAS ============ */
+.settings-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+.settings-hd { font-size: 13px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+/* ============ MINI CHART ============ */
+.sparkline { display: flex; align-items: flex-end; gap: 3px; height: 40px; margin-top: 8px; }
+.spark-bar { flex: 1; border-radius: 2px 2px 0 0; opacity: .7; min-height: 4px; transition: height .3s; }
+
+/* ============ CLIENT FOLDER ============ */
+.folder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.folder-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; cursor: pointer; transition: all .2s; text-align: center; }
+.folder-card:hover { border-color: var(--primary); box-shadow: 0 4px 16px rgba(30,64,175,.1); transform: translateY(-1px); }
+.folder-icon { font-size: 32px; margin-bottom: 8px; }
+.folder-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.folder-sub { font-size: 11px; color: var(--text-3); }
+
+/* ============ SCROLLBAR ============ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+/* ============ DIVIDER ============ */
+.divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+/* ============ KANBAN DRAG ============ */
+.kanban-card { position: relative; }
+.kanban-card[draggable="true"] { cursor: grab; }
+.kanban-card.dragging { opacity: .4; }
+.kanban-body.drag-over { background: var(--primary-xlight); outline: 2px dashed var(--primary-light); outline-offset: -4px; }
+.kanban-card-handle { position: absolute; top: 8px; right: 8px; color: var(--text-3); cursor: grab; opacity: 0; transition: opacity .15s; }
+.kanban-card:hover .kanban-card-handle { opacity: 1; }
+
+/* view toggle */
+.view-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.view-toggle button { border: none; background: var(--surface); padding: 7px 12px; font-size: 12px; cursor: pointer; color: var(--text-2); display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-ui); }
+.view-toggle button.active { background: var(--primary); color: #fff; }
+
+/* checklist view de tarefas */
+.tasklist-group { margin-bottom: 18px; }
+.tasklist-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; padding: 8px 0; display: flex; align-items: center; gap: 8px; }
+.tasklist-row { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+.tasklist-row .check-box { margin: 0; }
+.tasklist-meta { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.task-select { border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 11px; width: auto; }
+
+/* ============ DETALHE DO CLIENTE ============ */
+.client-detail { display: none; }
+.client-detail.open { display: block; }
+.detail-head { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.detail-avatar { width: 56px; height: 56px; border-radius: 12px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; flex-shrink: 0; }
+.detail-actions { margin-left: auto; display: flex; gap: 8px; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: #dc2626; }
+.note-area { min-height: 120px; resize: vertical; font-family: var(--font-ui); line-height: 1.6; }
+.archived-tag { background: var(--warning-bg); color: var(--warning); }
+
+/* ============ TOOLTIP ============ */
+.tip { position: relative; cursor: help; }
+.tip::after { content: attr(data-tip); position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%); background: var(--text); color: #fff; font-size: 11px; padding: 4px 8px; border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s; }
+.tip:hover::after { opacity: 1; }
+
+@media (max-width: 900px) {
+  #sidebar { transform: translateX(-100%); transition: transform .3s; }
+  #sidebar.open { transform: translateX(0); }
+  #main { margin-left: 0; }
+  .g4, .g5 { grid-template-columns: 1fr 1fr; }
+  .g3 { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ SIDEBAR ============ -->
+<aside id="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo">D</div>
+    <div>
+      <div class="sidebar-name">Dissenti4l</div>
+      <div class="sidebar-sub">Agency OS</div>
+    </div>
+  </div>
+
+  <div class="nav-section">Principal</div>
+  <div class="nav-item active" onclick="goTo('resumo')">
+    <span class="nav-icon" data-icon="layout"></span> Resumo do Mês
+  </div>
+
+  <div class="nav-section">Cliente</div>
+  <div class="nav-item" onclick="goTo('visao')">
+    <span class="nav-icon" data-icon="eye"></span> Visão Geral
+  </div>
+  <div class="nav-item" onclick="goTo('onboarding')">
+    <span class="nav-icon" data-icon="rocket"></span> Onboarding
+  </div>
+  <div class="nav-item" onclick="goTo('cadastros')">
+    <span class="nav-icon" data-icon="folder"></span> Dados Cadastrais
+  </div>
+  <div class="nav-item" onclick="goTo('cliente-view')">
+    <span class="nav-icon" data-icon="link"></span> Visão do Cliente
+  </div>
+
+  <div class="nav-section">Operação</div>
+  <div class="nav-item" onclick="goTo('midia')">
+    <span class="nav-icon" data-icon="clipboard"></span> Plano de Mídia
+  </div>
+  <div class="nav-item" onclick="goTo('assets')">
+    <span class="nav-icon" data-icon="palette"></span> Assets
+  </div>
+  <div class="nav-item" onclick="goTo('integracoes')">
+    <span class="nav-icon" data-icon="plug"></span> Integrações
+  </div>
+  <div class="nav-item" onclick="goTo('campanhas')">
+    <span class="nav-icon" data-icon="megaphone"></span> Campanhas
+  </div>
+
+  <div class="nav-section">Equipe</div>
+  <div class="nav-item" onclick="goTo('tarefas')">
+    <span class="nav-icon" data-icon="check-square"></span> Tarefas
+    <span class="nav-badge" id="badge-tarefas">3</span>
+  </div>
+  <div class="nav-item" onclick="goTo('atendimento')">
+    <span class="nav-icon" data-icon="message"></span> Atendimento
+  </div>
+
+  <div class="nav-section">Gestão</div>
+  <div class="nav-item" onclick="goTo('financeiro')">
+    <span class="nav-icon" data-icon="dollar"></span> Financeiro
+  </div>
+  <div class="nav-item" onclick="goTo('configuracoes')">
+    <span class="nav-icon" data-icon="settings"></span> Configurações
+  </div>
+
+  <div class="sidebar-footer">v1.0 · Dissenti4l Agency OS</div>
+</aside>
+
+<!-- ============ MAIN ============ -->
+<div id="main">
+  <div id="topbar">
+    <div class="topbar-title" id="page-title">Resumo do Mês</div>
+    <div class="topbar-right">
+      <span class="topbar-date" id="topbar-date"></span>
+      <button class="btn btn-primary" onclick="openModal('modal-meta')"><span data-icon="target"></span> Editar Metas</button>
+    </div>
+  </div>
+
+  <div id="content">
+
+    <!-- ======================================================
+         PAGE: RESUMO DO MÊS
+    ====================================================== -->
+    <div class="page active" id="page-resumo">
+
+      <!-- Banner -->
+      <div class="banner" id="banner">
+        <img id="banner-img" src="" alt="" style="display:none">
+        <div class="banner-content">
+          <div class="banner-label" id="banner-mes-label">Junho · 2026</div>
+          <div class="banner-title">O mês em uma <em>única</em> tela.</div>
+        </div>
+        <div class="banner-upload">
+          <label class="btn btn-upload" style="cursor:pointer; font-size:11px; padding:6px 12px; border-radius:6px;">
+            <span data-icon="image"></span> Trocar banner
+            <input type="file" accept="image/*" style="display:none" onchange="changeBanner(this)">
+          </label>
+        </div>
+      </div>
+
+      <!-- FALTA / DIA -->
+      <div class="grid g2" style="margin-bottom:16px;">
+        <div class="falta-card">
+          <div class="falta-label"><span data-icon="dollar"></span> Falta para a meta de MRR</div>
+          <div class="falta-value" id="falta-mrr">R$ 0</div>
+          <div class="falta-sub" id="falta-mrr-pct">Meta: R$ 50.000 · você está em R$ 0</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="dia-card positivo" id="dia-card">
+            <div class="dia-icon" id="dia-icon" data-icon="trending-up"></div>
+            <div>
+              <div class="dia-label">Tendência de hoje</div>
+              <div class="dia-value" id="dia-value">+ R$ 1.200</div>
+              <div class="dia-meta" id="dia-meta">Receita hoje vs média diária da meta</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <div class="card card-sm" style="flex:1; text-align:center; border-left: 3px solid var(--success);">
+              <div class="card-label" style="justify-content:center;"><span data-icon="arrow-up"></span> Entraram</div>
+              <div style="font-size:20px; font-weight:600; color:var(--success)" id="res-entraram">R$ 0</div>
+              <div style="font-size:10px; color:var(--text-3)" id="res-entraram-n">0 clientes</div>
+            </div>
+            <div class="card card-sm" style="flex:1; text-align:center; border-left: 3px solid var(--danger);">
+              <div class="card-label" style="justify-content:center;"><span data-icon="arrow-down"></span> Saíram</div>
+              <div style="font-size:20px; font-weight:600; color:var(--danger)" id="res-saíram">R$ 0</div>
+              <div style="font-size:10px; color:var(--text-3)" id="res-saíram-n">0 clientes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs PRINCIPAIS -->
+      <div class="section-hd">
+        <div class="section-title">KPIs do Mês</div>
+      </div>
+      <div class="grid g5" style="margin-bottom:16px;" id="kpi-grid">
+        <!-- gerado por JS -->
+      </div>
+
+      <!-- PROGRESSO DAS METAS -->
+      <div class="section-hd">
+        <div class="section-title">Metas do Mês</div>
+        <button class="btn btn-outline" onclick="openModal('modal-meta')" style="font-size:11px;"><span data-icon="edit"></span> Editar Metas</button>
+      </div>
+      <div class="grid g3" id="metas-grid" style="margin-bottom:20px;">
+        <!-- gerado por JS -->
+      </div>
+
+      <!-- MINI CHART LEADS -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-label"><span data-icon="trending-up"></span> Leads nos últimos 30 dias</div>
+        <div class="sparkline" id="spark-leads"></div>
+        <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-3); margin-top:4px;">
+          <span>01 Jun</span><span>15 Jun</span><span>Hoje</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================
+         PAGE: VISÃO GERAL
+    ====================================================== -->
+    <div class="page" id="page-visao">
+      <div class="banner" style="background: linear-gradient(135deg,#1e3a8a,#1e40af);">
+        <div class="banner-content">
+          <div class="banner-label">02 — Visão Geral</div>
+          <div class="banner-title">Todos os clientes, <em>uma</em> visão.</div>
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <button class="filter-pill active">Todos</button>
+        <button class="filter-pill">Ativos</button>
+        <button class="filter-pill">Em risco</button>
+        <button class="filter-pill">Inativos</button>
+      </div>
+
+      <div class="table-wrap">
+        <table id="tbl-clientes">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Pacote</th>
+              <th>MRR</th>
+              <th>Verba Ads</th>
+              <th>CPL Real</th>
+              <th>Leads Mês</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-clientes"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         PAGE: ONBOARDING
+    ====================================================== -->
+    <div class="page" id="page-onboarding">
+      <div class="banner" style="background: linear-gradient(135deg,#0f766e,#0d9488);">
+        <div class="banner-content">
+          <div class="banner-label">03 — Onboarding</div>
+          <div class="banner-title">Ative o cliente do <em>jeito certo.</em></div>
+        </div>
+      </div>
+
+      <div class="grid g2">
+        <div id="onboarding-list"></div>
+        <div class="card">
+          <div class="card-label">📋 Checklist padrão de onboarding</div>
+          <div id="checklist-onboarding"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         PAGE: DADOS CADASTRAIS
+    ====================================================== -->
+    <div class="page" id="page-cadastros">
+      <div class="banner" style="background: linear-gradient(135deg,#4338ca,#6366f1);">
+        <div class="banner-content">
+          <div class="banner-label">04 — Dados Cadastrais</div>
+          <div class="banner-title">A pasta de cada <em>cliente.</em></div>
+        </div>
+      </div>
+
+      <div id="cad-list">
+        <div class="filter-row" style="justify-content:space-between; align-items:center;">
+          <div style="display:flex; gap:6px;">
+            <button class="filter-pill active" onclick="filtroCad('ativos',this)">Ativos</button>
+            <button class="filter-pill" onclick="filtroCad('arquivados',this)">Arquivados</button>
+            <button class="filter-pill" onclick="filtroCad('todos',this)">Todos</button>
+          </div>
+          <button class="btn btn-primary" onclick="openModal('modal-add-cliente')"><span data-icon="plus"></span> Novo Cliente</button>
+        </div>
+        <div class="folder-grid" id="folder-grid"></div>
+      </div>
+
+      <div class="client-detail" id="cad-detail"></div>
+    </div>
+
+    <!-- ======================================================
+         PAGE: VISÃO DO CLIENTE
+    ====================================================== -->
+    <div class="page" id="page-cliente-view">
+      <div class="banner" style="background: linear-gradient(135deg,#be185d,#db2777);">
+        <div class="banner-content">
+          <div class="banner-label">05 — Visão do Cliente</div>
+          <div class="banner-title">O que o cliente <em>vê.</em></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label"><span data-icon="link"></span> Link público do relatório por cliente</div>
+        <p style="color:var(--text-2); font-size:13px; margin-top:8px;">Selecione um cliente para gerar o link de acesso ao relatório público.</p>
+        <div class="form-group" style="margin-top:16px; max-width:320px;">
+          <label>Cliente</label>
+          <select id="sel-cliente-view">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="margin-top:8px;" onclick="gerarLink()"><span data-icon="link"></span> Gerar Link</button>
+        <div id="link-result" style="margin-top:12px; display:none; padding:10px 14px; background:var(--primary-xlight); border-radius:6px; font-size:12px; color:var(--primary); word-break:break-all;"></div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         PAGE: PLANO DE MÍDIA
+    ====================================================== -->
+    <div class="page" id="page-midia">
+      <div class="banner" style="background: linear-gradient(135deg,#92400e,#b45309);">
+        <div class="banner-content">
+          <div class="banner-label">06 — Plano de Mídia</div>
+          <div class="banner-title">Para <em>onde</em> o dinheiro vai.</div>
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <button class="filter-pill active">Todos os clientes</button>
+      </div>
+      <div id="midia-cards"></div>
+    </div>
+
+    <!-- ======================================================
+         PAGE: ASSETS
+    ====================================================== -->
+    <div class="page" id="page-assets">
+      <div class="banner" style="background: linear-gradient(135deg,#7c3aed,#8b5cf6);">
+        <div class="banner-content">
+          <div class="banner-label">07 — Assets</div>
+          <div class="banner-title">Criativos prontos para <em>rodar.</em></div>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+        <button class="btn btn-primary" onclick="openModal('modal-add-asset')"><span data-icon="plus"></span> Novo Asset</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th><th>Cliente</th><th>Tipo</th><th>Status</th><th>Link</th><th>Data</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-assets"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         PAGE: INTEGRAÇÕES
+    ====================================================== -->
+    <div class="page" id="page-integracoes">
+      <div class="banner" style="background: linear-gradient(135deg,#0e7490,#0891b2);">
+        <div class="banner-content">
+          <div class="banner-label">08 — Integrações</div>
+          <div class="banner-title">Dados <em>automáticos</em> no dash.</div>
+        </div>
+      </div>
+      <div id="integracoes-list"></div>
+    </div>
+
+    <!-- ======================================================
+         PAGE: CAMPANHAS
+    ====================================================== -->
+    <div class="page" id="page-campanhas">
+      <div class="banner" style="background: linear-gradient(135deg,#065f46,#059669);">
+        <div class="banner-content">
+          <div class="banner-label">09 — Campanhas</div>
+          <div class="banner-title">O que está <em>rodando</em> agora.</div>
+        </div>
+      </div>
+
+      <div class="filter-row" id="camp-filters">
+        <button class="filter-pill active" onclick="filtroCamp('todas',this)">Todas</button>
+        <button class="filter-pill" onclick="filtroCamp('agencia',this)">Só da agência</button>
+        <button class="filter-pill" onclick="filtroCamp('clientes',this)">Só de clientes</button>
+      </div>
+
+      <div class="grid g4" style="margin-bottom:20px;" id="camp-kpis"></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Campanha</th><th>Origem</th><th>Verba</th><th>Gasto</th><th>Leads</th><th>CPL</th><th>ROAS</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-camp"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         PAGE: TAREFAS
+    ====================================================== -->
+    <div class="page" id="page-tarefas">
+      <div class="banner" style="background: linear-gradient(135deg,#1e3a8a,#1d4ed8);">
+        <div class="banner-content">
+          <div class="banner-label">10 — Tarefas</div>
+          <div class="banner-title">O que precisa de <em>aprovação.</em></div>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div class="view-toggle">
+          <button id="vt-kanban" class="active" onclick="setTaskView('kanban')"><span data-icon="columns"></span> Kanban</button>
+          <button id="vt-lista" onclick="setTaskView('lista')"><span data-icon="list"></span> Checklist</button>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modal-add-tarefa')"><span data-icon="plus"></span> Nova Tarefa</button>
+      </div>
+      <div class="kanban" id="kanban-board"></div>
+      <div id="task-list" style="display:none;"></div>
+    </div>
+
+    <!-- ======================================================
+         PAGE: ATENDIMENTO
+    ====================================================== -->
+    <div class="page" id="page-atendimento">
+      <div class="banner" style="background: linear-gradient(135deg,#134e4a,#0f766e);">
+        <div class="banner-content">
+          <div class="banner-label">11 — Atendimento</div>
+          <div class="banner-title">Histórico e próximos <em>contatos.</em></div>
+        </div>
+      </div>
+
+      <div class="grid g2">
+        <div>
+          <div class="section-hd">
+            <div class="section-title">Próximas reuniões</div>
+            <button class="btn btn-outline" style="font-size:11px;" onclick="openModal('modal-add-reuniao')"><span data-icon="plus"></span> Reunião</button>
+          </div>
+          <div id="reunioes-list"></div>
+        </div>
+        <div>
+          <div class="section-hd">
+            <div class="section-title">Solicitações abertas</div>
+            <button class="btn btn-primary" style="font-size:11px;" onclick="openModal('modal-add-solic')"><span data-icon="plus"></span> Solicitação</button>
+          </div>
+          <div id="atend-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         PAGE: FINANCEIRO
+    ====================================================== -->
+    <div class="page" id="page-financeiro">
+      <div class="banner" style="background: linear-gradient(135deg,#14532d,#15803d);">
+        <div class="banner-content">
+          <div class="banner-label">12 — Financeiro</div>
+          <div class="banner-title">Os números que <em>importam.</em></div>
+        </div>
+      </div>
+
+      <div class="filter-row" id="fin-filters">
+        <button class="filter-pill active" onclick="filtroFin(7,this)">Últimos 7 dias</button>
+        <button class="filter-pill" onclick="filtroFin(15,this)">Últimos 15 dias</button>
+        <button class="filter-pill" onclick="filtroFin(30,this)">Últimos 30 dias</button>
+        <button class="filter-pill" onclick="filtroFin(0,this)">Mês atual</button>
+      </div>
+
+      <div class="grid g4" id="fin-kpis" style="margin-bottom:20px;"></div>
+
+      <div class="section-hd"><div class="section-title">Detalhamento</div></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Data</th><th>Descrição</th><th>Cliente</th><th>Tipo</th><th>Valor</th></tr>
+          </thead>
+          <tbody id="tbody-fin"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         PAGE: CONFIGURAÇÕES
+    ====================================================== -->
+    <div class="page" id="page-configuracoes">
+      <div class="banner" style="background: linear-gradient(135deg,#374151,#1f2937);">
+        <div class="banner-content">
+          <div class="banner-label">Configurações</div>
+          <div class="banner-title">Personalize sua <em>plataforma.</em></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-hd"><span data-icon="palette"></span> Cores da Plataforma</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Cor principal</label>
+            <input type="color" id="cfg-primary" value="#1e40af" onchange="setCssVar('--primary',this.value)" style="height:40px; cursor:pointer;">
+          </div>
+          <div class="form-group">
+            <label>Cor de destaque</label>
+            <input type="color" id="cfg-accent" value="#3b82f6" onchange="setCssVar('--primary-light',this.value)" style="height:40px; cursor:pointer;">
+          </div>
+          <div class="form-group">
+            <label>Fundo geral</label>
+            <input type="color" id="cfg-bg" value="#f5f7fa" onchange="setCssVar('--bg',this.value)" style="height:40px; cursor:pointer;">
+          </div>
+          <div class="form-group">
+            <label>Cor de sucesso</label>
+            <input type="color" id="cfg-success" value="#10b981" onchange="setCssVar('--success',this.value)" style="height:40px; cursor:pointer;">
+          </div>
+        </div>
+        <button class="btn btn-outline" onclick="resetColors()" style="margin-top:4px;"><span data-icon="refresh"></span> Restaurar padrão</button>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-hd"><span data-icon="building"></span> Dados da Agência</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nome da agência</label>
+            <input type="text" id="cfg-nome" value="Dissenti4l" onchange="salvarCfg()">
+          </div>
+          <div class="form-group">
+            <label>Responsável</label>
+            <input type="text" id="cfg-resp" value="" placeholder="Seu nome" onchange="salvarCfg()">
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-hd"><span data-icon="target"></span> Metas Mensais</div>
+        <div class="form-grid" id="metas-form-config"></div>
+        <button class="btn btn-primary" onclick="salvarMetas()" style="margin-top:8px;"><span data-icon="save"></span> Salvar metas</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ============ MODAIS ============ -->
+
+<!-- Modal: Metas -->
+<div class="modal-overlay" id="modal-meta">
+  <div class="modal">
+    <div class="modal-title"><span data-icon="target"></span> Editar Metas do Mês</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>MRR alvo (R$)</label>
+        <input type="number" id="m-mrr" placeholder="50000">
+      </div>
+      <div class="form-group">
+        <label>Clientes ativos alvo</label>
+        <input type="number" id="m-clientes" placeholder="10">
+      </div>
+      <div class="form-group">
+        <label>Leads alvo</label>
+        <input type="number" id="m-leads" placeholder="1000">
+      </div>
+      <div class="form-group">
+        <label>CPL máximo (R$)</label>
+        <input type="number" id="m-cpl" placeholder="40">
+      </div>
+      <div class="form-group">
+        <label>Verba em Ads (R$)</label>
+        <input type="number" id="m-ads" placeholder="25000">
+      </div>
+      <div class="form-group">
+        <label>Reuniões alvo</label>
+        <input type="number" id="m-reunioes" placeholder="20">
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div style="font-size:12px; color:var(--text-3); margin-bottom:4px; font-weight:600;">DADOS REAIS DO MÊS</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>MRR atual (R$)</label>
+        <input type="number" id="r-mrr" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Clientes ativos</label>
+        <input type="number" id="r-clientes" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Leads captados</label>
+        <input type="number" id="r-leads" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Gasto em Ads (R$)</label>
+        <input type="number" id="r-ads" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Novos clientes (R$)</label>
+        <input type="number" id="r-new-val" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Churn (R$)</label>
+        <input type="number" id="r-churn-val" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Novos clientes (qtd)</label>
+        <input type="number" id="r-new-n" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Churn (qtd)</label>
+        <input type="number" id="r-churn-n" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Receita hoje (R$)</label>
+        <input type="number" id="r-hoje" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Reuniões realizadas</label>
+        <input type="number" id="r-reunioes" placeholder="0">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-meta')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarTudo()"><span data-icon="save"></span> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Cliente -->
+<div class="modal-overlay" id="modal-add-cliente">
+  <div class="modal">
+    <div class="modal-title"><span data-icon="user-plus"></span> Novo Cliente</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nome do cliente</label>
+        <input type="text" id="nc-nome" placeholder="Ex: Clínica Monte Sinai">
+      </div>
+      <div class="form-group">
+        <label>Pacote</label>
+        <select id="nc-pacote">
+          <option>Starter</option><option>Growth</option><option>Premium</option><option>Enterprise</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Valor do contrato (R$)</label>
+        <input type="number" id="nc-valor" placeholder="5000">
+      </div>
+      <div class="form-group">
+        <label>Responsável</label>
+        <input type="text" id="nc-resp" placeholder="Nome do gestor">
+      </div>
+      <div class="form-group">
+        <label>Vencimento contrato</label>
+        <input type="date" id="nc-venc">
+      </div>
+      <div class="form-group">
+        <label>WhatsApp</label>
+        <input type="text" id="nc-wpp" placeholder="(00) 00000-0000">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-cliente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addCliente()"><span data-icon="plus"></span> Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Tarefa -->
+<div class="modal-overlay" id="modal-add-tarefa">
+  <div class="modal">
+    <div class="modal-title"><span data-icon="check-square"></span> Nova Tarefa</div>
+    <div class="form-group">
+      <label>Título da tarefa</label>
+      <input type="text" id="nt-titulo" placeholder="Ex: Criar criativos de novembro">
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Cliente</label>
+        <select id="nt-cliente"><option value="">Selecione...</option></select>
+      </div>
+      <div class="form-group">
+        <label>Responsável</label>
+        <input type="text" id="nt-resp" placeholder="Nome">
+      </div>
+      <div class="form-group">
+        <label>Prazo</label>
+        <input type="date" id="nt-prazo">
+      </div>
+      <div class="form-group">
+        <label>Coluna</label>
+        <select id="nt-coluna">
+          <option value="solicitacao">Solicitação</option>
+          <option value="viabilidade">Viabilidade</option>
+          <option value="producao">Produção</option>
+          <option value="aprovacao">Aprovação</option>
+          <option value="entregue">Entregue</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-tarefa')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addTarefa()"><span data-icon="plus"></span> Criar Tarefa</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Asset -->
+<div class="modal-overlay" id="modal-add-asset">
+  <div class="modal">
+    <div class="modal-title"><span data-icon="palette"></span> Novo Asset</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nome do asset</label>
+        <input type="text" id="na-nome" placeholder="Ex: Stories - Black Friday">
+      </div>
+      <div class="form-group">
+        <label>Cliente</label>
+        <select id="na-cliente"><option value="">Selecione...</option></select>
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="na-tipo">
+          <option>Stories</option><option>Post Feed</option><option>Reels</option><option>Vídeo</option><option>Banner</option><option>Carrossel</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="na-status">
+          <option>Em produção</option><option>Aguardando aprovação</option><option>Aprovado</option><option>Reprovado</option>
+        </select>
+      </div>
+      <div class="form-group" style="grid-column:1/-1;">
+        <label>Link (Google Drive / Figma)</label>
+        <input type="text" id="na-link" placeholder="https://...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-asset')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addAsset()"><span data-icon="plus"></span> Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Reunião -->
+<div class="modal-overlay" id="modal-add-reuniao">
+  <div class="modal">
+    <div class="modal-title"><span data-icon="calendar"></span> Nova Reunião</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Cliente</label>
+        <select id="nr-cliente"><option value="">Selecione...</option></select>
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="nr-tipo"><option>Mensal</option><option>Revisão</option><option>Estratégia</option><option>Kick-off</option><option>Alinhamento</option></select>
+      </div>
+      <div class="form-group">
+        <label>Data e hora</label>
+        <input type="text" id="nr-data" placeholder="Ex: 20/06 14h">
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="nr-status"><option>A confirmar</option><option>Confirmada</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-reuniao')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addReuniao()"><span data-icon="plus"></span> Agendar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Solicitação -->
+<div class="modal-overlay" id="modal-add-solic">
+  <div class="modal">
+    <div class="modal-title"><span data-icon="message"></span> Nova Solicitação</div>
+    <div class="form-group">
+      <label>Solicitação</label>
+      <input type="text" id="ns-req" placeholder="Ex: Novo criativo urgente">
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Cliente</label>
+        <select id="ns-cliente"><option value="">Selecione...</option></select>
+      </div>
+      <div class="form-group">
+        <label>Prioridade</label>
+        <select id="ns-prioridade"><option>Normal</option><option>Alta</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-solic')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addSolic()"><span data-icon="plus"></span> Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ JAVASCRIPT ============ -->
+<script>
+// =============================================================
+// SISTEMA DE ÍCONES (SVG, estilo único linha)
+// =============================================================
+const ICONS = {
+  layout:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>',
+  eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+  rocket:'<path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2 0-2.7a1.9 1.9 0 0 0-3 0z"/><path d="M12 15l-3-3a22 22 0 0 1 8-10 8.5 8.5 0 0 1 5 5 22 22 0 0 1-10 8z"/><path d="M9 12H4s.5-2.8 2-4c1.7-1.3 5-1 5-1M12 15v5s2.8-.5 4-2c1.3-1.7 1-5 1-5"/>',
+  folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  'folder-open':'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2"/><path d="M3 7l1.5 11a2 2 0 0 0 2 1.8h11a2 2 0 0 0 2-1.8L21 11H5"/>',
+  link:'<path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/>',
+  clipboard:'<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/>',
+  palette:'<circle cx="13.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="10.5" r="1.5"/><circle cx="8.5" cy="7.5" r="1.5"/><circle cx="6.5" cy="12.5" r="1.5"/><path d="M12 2a10 10 0 0 0 0 20 2 2 0 0 0 2-2 2 2 0 0 1 2-2h2a4 4 0 0 0 4-4 10 10 0 0 0-10-10z"/>',
+  plug:'<path d="M12 22v-5M9 8V2M15 8V2M7 8h10v3a5 5 0 0 1-10 0z"/>',
+  megaphone:'<path d="M3 11v2a1 1 0 0 0 1 1h2l9 5V5L6 10H4a1 1 0 0 0-1 1z"/><path d="M18 8a4 4 0 0 1 0 8"/>',
+  'check-square':'<path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/>',
+  message:'<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-4-1L3 20l1.1-4A8.4 8.4 0 0 1 3 11.5 8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/>',
+  dollar:'<path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 2.6 7a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H7a1.6 1.6 0 0 0 1-1.5V1a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V7a1.6 1.6 0 0 0 1.5 1H23a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/>',
+  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
+  image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',
+  edit:'<path d="M11 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-6"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/>',
+  'trending-up':'<path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/>',
+  'trending-down':'<path d="M3 7l6 6 4-4 8 8"/><path d="M17 17h4v-4"/>',
+  'arrow-up':'<path d="M12 19V5M5 12l7-7 7 7"/>',
+  'arrow-down':'<path d="M12 5v14M5 12l7 7 7-7"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  columns:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  'user-plus':'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>',
+  building:'<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"/>',
+  save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
+  refresh:'<path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/>',
+  users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+  check:'<path d="M20 6L9 17l-5-5"/>',
+  trash:'<path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/>',
+  archive:'<rect x="3" y="3" width="18" height="5" rx="1"/><path d="M5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M10 12h4"/>',
+  x:'<path d="M18 6L6 18M6 6l12 12"/>',
+  grip:'<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>',
+  briefcase:'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+  phone:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+  file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+  zap:'<path d="M13 2L3 14h8l-1 8 10-12h-8z"/>',
+  building2:'<path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3"/>',
+  copy:'<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  flame:'<path d="M12 2s4 4 4 9a4 4 0 0 1-8 0c0-1 .5-2 1-2.5C8 11 7 13 7 15a5 5 0 0 0 10 0c0-5-5-9-5-13z"/>'
+};
+function icon(name, cls) { return `<svg class="icon ${cls||''}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]||''}</svg>`; }
+function applyIcons(root) {
+  (root||document).querySelectorAll('[data-icon]').forEach(el => {
+    el.innerHTML = icon(el.getAttribute('data-icon'));
+  });
+}
+
+// =============================================================
+// ESTADO GLOBAL
+// =============================================================
+let state = {
+  metas: { mrr: 50000, clientes: 10, leads: 1000, cpl: 40, ads: 25000, reunioes: 20 },
+  real:  { mrr: 0, clientes: 0, leads: 0, ads: 0, newVal: 0, churnVal: 0, newN: 0, churnN: 0, hoje: 0, reunioes: 0 },
+  clientes: [
+    { id:1, nome:'Clínica Monte Sinai', pacote:'Premium', valor:8500, resp:'BB', venc:'2026-12-01', wpp:'(11) 99999-1111', email:'contato@montesinai.com', cnpj:'12.345.678/0001-90', leads:572, adSpend:18420, cpl:32.18, roas:4.2, status:'Ativo', arquivado:false, notas:'Cliente desde jan/2026. Foco em captação de pacientes para endometriose e menopausa. Aprovações via WhatsApp da Dra. Marina.' },
+    { id:2, nome:'Instituto ABC',       pacote:'Growth',  valor:5000, resp:'BB', venc:'2026-10-15', wpp:'(11) 99999-2222', email:'marketing@institutoabc.com', cnpj:'98.765.432/0001-10', leads:210, adSpend:8000,  cpl:38.10, roas:3.1, status:'Ativo', arquivado:false, notas:'Nova oferta combo em desenvolvimento. Landing page em produção.' },
+    { id:3, nome:'Consultoria Forma',   pacote:'Starter', valor:3000, resp:'LA', venc:'2026-09-30', wpp:'(11) 99999-3333', email:'ola@consultoriaforma.com', cnpj:'45.678.901/0001-23', leads:98,  adSpend:3500,  cpl:35.71, roas:2.8, status:'Em risco', arquivado:false, notas:'Atenção: ROAS abaixo da meta. Renovação em risco — agendar reunião de retenção.' },
+  ],
+  solicitacoes: [
+    { id:1, cliente:'Clínica Monte Sinai', req:'Novo criativo urgente', data:'Hoje', prioridade:'Alta' },
+    { id:2, cliente:'Instituto ABC', req:'Relatório de performance', data:'Ontem', prioridade:'Normal' },
+  ],
+  tarefas: [
+    { id:1, titulo:'Vídeo novo sobre endometriose',    cliente:'Clínica Monte Sinai', resp:'BB', prazo:'28/out', coluna:'solicitacao' },
+    { id:2, titulo:'Post carrossel "5 mitos"',          cliente:'Clínica Monte Sinai', resp:'BB', prazo:'25/out', coluna:'solicitacao' },
+    { id:3, titulo:'Campanha de Natal',                 cliente:'Consultoria Forma',   resp:'LA', prazo:'15/nov', coluna:'solicitacao' },
+    { id:4, titulo:'Landing page nova oferta combo',    cliente:'Instituto ABC',        resp:'BB', prazo:'30/out', coluna:'viabilidade' },
+    { id:5, titulo:'Criativos em TikTok',               cliente:'Consultoria Forma',   resp:'LA', prazo:'—',      coluna:'viabilidade' },
+    { id:6, titulo:'Edição de vídeo institucional',     cliente:'Clínica Monte Sinai', resp:'BB', prazo:'01/nov', coluna:'producao' },
+    { id:7, titulo:'Copy para anúncio de captação',     cliente:'Instituto ABC',        resp:'BB', prazo:'27/out', coluna:'aprovacao' },
+  ],
+  assets: [
+    { nome:'Stories Black Friday', cliente:'Clínica Monte Sinai', tipo:'Stories', status:'Aprovado', link:'https://drive.google.com', data:'01/06/2026' },
+    { nome:'Carrossel 5 mitos',    cliente:'Clínica Monte Sinai', tipo:'Carrossel', status:'Aguardando aprovação', link:'https://figma.com', data:'05/06/2026' },
+    { nome:'Reels captação',       cliente:'Instituto ABC', tipo:'Reels', status:'Em produção', link:'https://drive.google.com', data:'10/06/2026' },
+  ],
+  financeiro: [
+    { data:'01/06', desc:'Mensalidade', cliente:'Clínica Monte Sinai', tipo:'Entrada', valor: 8500 },
+    { data:'02/06', desc:'Mensalidade', cliente:'Instituto ABC',        tipo:'Entrada', valor: 5000 },
+    { data:'03/06', desc:'Mensalidade', cliente:'Consultoria Forma',    tipo:'Entrada', valor: 3000 },
+    { data:'05/06', desc:'Ferramenta n8n', cliente:'—', tipo:'Saída', valor:-80 },
+    { data:'10/06', desc:'Domínio', cliente:'—', tipo:'Saída', valor:-50 },
+  ],
+  reunioes: [
+    { cliente:'Clínica Monte Sinai', data:'20/06 14h', tipo:'Mensal', status:'Confirmada' },
+    { cliente:'Instituto ABC',       data:'22/06 10h', tipo:'Revisão', status:'A confirmar' },
+    { cliente:'Consultoria Forma',   data:'25/06 16h', tipo:'Estratégia', status:'Confirmada' },
+  ],
+  campanhas: [
+    { nome:'Dissenti4l — Captação de clientes',  origem:'agencia', verba:6000, gasto:4100, leads:54, cpl:75.92, roas:6.0, status:'Ativa' },
+    { nome:'Dissenti4l — Remarketing site',      origem:'agencia', verba:2000, gasto:900,  leads:18, cpl:50.00, roas:8.0, status:'Ativa' },
+    { nome:'Captação - Instagram',   origem:'cliente', cliente:'Clínica Monte Sinai', verba:15000, gasto:10200, leads:320, cpl:31.87, roas:4.1, status:'Ativa' },
+    { nome:'Remarketing Variantes',  origem:'cliente', cliente:'Clínica Monte Sinai', verba:5000,  gasto:3800,  leads:150, cpl:25.33, roas:5.2, status:'Ativa' },
+    { nome:'Leads Médicos',          origem:'cliente', cliente:'Instituto ABC',        verba:8000,  gasto:5500,  leads:180, cpl:30.55, roas:3.0, status:'Ativa' },
+    { nome:'Black Friday Preview',   origem:'cliente', cliente:'Consultoria Forma',    verba:3500,  gasto:1200,  leads:42,  cpl:28.57, roas:2.8, status:'Pausada' },
+  ],
+  campFiltro: 'todas',
+};
+
+// Carrega dados salvos (chave versionada — bump força recarregar a nova estrutura)
+const STORAGE_KEY = 'dissenti4l-state-v2';
+function loadState() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) { try { const s = JSON.parse(saved); Object.assign(state, s); } catch(e){} }
+}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+// =============================================================
+// NAVEGAÇÃO
+// =============================================================
+const pageNames = {
+  resumo:'Resumo do Mês', visao:'Visão Geral', onboarding:'Onboarding',
+  cadastros:'Dados Cadastrais', 'cliente-view':'Visão do Cliente',
+  midia:'Plano de Mídia', assets:'Assets', integracoes:'Integrações',
+  campanhas:'Campanhas', tarefas:'Tarefas', atendimento:'Atendimento',
+  financeiro:'Financeiro', configuracoes:'Configurações'
+};
+
+function goTo(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) n.classList.add('active');
+  });
+  document.getElementById('page-title').textContent = pageNames[id] || id;
+  renderPage(id);
+}
+
+// =============================================================
+// RENDER PAGES
+// =============================================================
+function renderPage(id) {
+  if (id === 'resumo')       renderResumo();
+  if (id === 'visao')        renderVisao();
+  if (id === 'onboarding')   renderOnboarding();
+  if (id === 'cadastros')    renderCadastros();
+  if (id === 'tarefas')      renderTarefas();
+  if (id === 'campanhas')    renderCampanhas();
+  if (id === 'financeiro')   renderFinanceiro(0);
+  if (id === 'assets')       renderAssets();
+  if (id === 'integracoes')  renderIntegracoes();
+  if (id === 'atendimento')  renderAtendimento();
+  if (id === 'cliente-view') renderClienteView();
+  if (id === 'midia')        renderMidia();
+}
+
+// =============================================================
+// RESUMO
+// =============================================================
+function renderResumo() {
+  const m = state.metas, r = state.real;
+
+  // Falta MRR
+  const falta = Math.max(0, m.mrr - r.mrr);
+  document.getElementById('falta-mrr').textContent = 'R$ ' + fmt(falta);
+  document.getElementById('falta-mrr-pct').textContent = `Meta: R$ ${fmt(m.mrr)} · você está em R$ ${fmt(r.mrr)}`;
+
+  // Tendência do dia
+  const mediaDiaria = m.mrr / 30;
+  const diff = r.hoje - mediaDiaria;
+  const diaEl = document.getElementById('dia-card');
+  document.getElementById('dia-value').textContent = (diff >= 0 ? '+ ' : '- ') + 'R$ ' + fmt(Math.abs(diff));
+  document.getElementById('dia-meta').textContent = `Hoje: R$ ${fmt(r.hoje)} · Meta diária: R$ ${fmt(mediaDiaria)}`;
+  diaEl.className = 'dia-card ' + (diff >= 0 ? 'positivo' : 'negativo');
+  diaEl.querySelector('.dia-icon').innerHTML = icon(diff >= 0 ? 'trending-up' : 'trending-down', 'icon-lg');
+
+  // Entraram / Saíram
+  document.getElementById('res-entraram').textContent = 'R$ ' + fmt(r.newVal);
+  document.getElementById('res-saíram').textContent = 'R$ ' + fmt(r.churnVal);
+  document.getElementById('res-entraram-n').textContent = r.newN + ' cliente' + (r.newN !== 1 ? 's' : '');
+  document.getElementById('res-saíram-n').textContent = r.churnN + ' cliente' + (r.churnN !== 1 ? 's' : '');
+
+  // KPIs
+  const kpis = [
+    { ic:'dollar', label:'MRR', value:'R$ ' + fmt(r.mrr), badge: pctBadge(r.mrr, m.mrr) },
+    { ic:'users', label:'Clientes ativos', value: r.clientes, badge: pctBadge(r.clientes, m.clientes) },
+    { ic:'target', label:'Leads captados', value: r.leads, badge: pctBadge(r.leads, m.leads) },
+    { ic:'megaphone', label:'Gastos Ads', value:'R$ ' + fmt(r.ads), badge: '' },
+    { ic:'calendar', label:'Reuniões', value: r.reunioes + ' / ' + m.reunioes, badge: pctBadge(r.reunioes, m.reunioes) },
+  ];
+  document.getElementById('kpi-grid').innerHTML = kpis.map(k => `
+    <div class="card card-sm">
+      <div class="card-label"><span class="card-icon">${icon(k.ic)}</span>${k.label}</div>
+      <div class="card-value" style="font-size:22px;">${k.value}</div>
+      ${k.badge ? `<div class="card-meta">${k.badge}</div>` : ''}
+    </div>
+  `).join('');
+
+  // Metas progress
+  const metasItems = [
+    { ic:'dollar', label:'MRR', real: r.mrr, meta: m.mrr, prefix:'R$ ', color:'blue' },
+    { ic:'target', label:'Leads', real: r.leads, meta: m.leads, prefix:'', color:'green' },
+    { ic:'megaphone', label:'Verba Ads', real: r.ads, meta: m.ads, prefix:'R$ ', color:'warning' },
+  ];
+  document.getElementById('metas-grid').innerHTML = metasItems.map(it => {
+    const pct = Math.min(100, Math.round((it.real / it.meta) * 100)) || 0;
+    return `
+    <div class="meta-card">
+      <div class="meta-header">
+        <div><div class="meta-title">${icon(it.ic)} ${it.label}</div><div class="meta-sub">Meta: ${it.prefix}${fmt(it.meta)}</div></div>
+        <div class="meta-numbers"><div class="meta-atual">${it.prefix}${fmt(it.real)}</div><div class="meta-goal">${pct}% alcançado</div></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill ${it.color}" style="width:${pct}%"></div></div>
+      <div class="progress-labels"><span>${it.prefix}0</span><span>${it.prefix}${fmt(it.meta)}</span></div>
+    </div>`;
+  }).join('');
+
+  // Sparkline (dados fake)
+  const spark = document.getElementById('spark-leads');
+  const dias = Array.from({length:17}, () => Math.floor(Math.random() * 60 + 10));
+  const max = Math.max(...dias);
+  spark.innerHTML = dias.map(v => `
+    <div class="spark-bar" style="height:${Math.round((v/max)*100)}%; background:var(--primary-light);"></div>
+  `).join('');
+}
+
+// =============================================================
+// VISÃO GERAL
+// =============================================================
+function renderVisao() {
+  const statusColors = { 'Ativo':'green', 'Em risco':'orange', 'Inativo':'gray' };
+  document.getElementById('tbody-clientes').innerHTML = state.clientes.map(c => `
+    <tr>
+      <td><div class="td-name"><div class="avatar">${c.nome[0]}</div>${c.nome}</div></td>
+      <td><span class="badge badge-blue">${c.pacote}</span></td>
+      <td><strong>R$ ${fmt(c.valor)}</strong></td>
+      <td>R$ ${fmt(c.adSpend)}</td>
+      <td>R$ ${c.cpl.toFixed(2)}</td>
+      <td>${c.leads}</td>
+      <td><span class="badge badge-${statusColors[c.status] || 'gray'}">${c.status}</span></td>
+      <td><button class="btn btn-outline" style="font-size:11px;" onclick="goTo('cadastros')">Ver pasta</button></td>
+    </tr>
+  `).join('');
+}
+
+// =============================================================
+// ONBOARDING
+// =============================================================
+function renderOnboarding() {
+  const checks = [
+    'Briefing preenchido', 'Acesso ao BM concedido', 'Pixel instalado e testado',
+    'Pixel Events confirmados', 'Catálogo de produtos (se e-comm)', 'Número WhatsApp configurado',
+    'CRM conectado', 'Reunião de kick-off realizada', 'Plano de mídia aprovado',
+    'Primeira campanha criada', 'Relatório de acesso enviado ao cliente'
+  ];
+  const key = 'onb-checks';
+  let done = JSON.parse(localStorage.getItem(key) || '[]');
+
+  document.getElementById('checklist-onboarding').innerHTML = checks.map((c, i) => `
+    <div class="checklist-item">
+      <div class="check-box ${done.includes(i) ? 'done' : ''}" onclick="toggleCheck(${i},'${key}')">
+        ${done.includes(i) ? '✓' : ''}
+      </div>
+      <div>
+        <div class="check-label ${done.includes(i) ? 'done-text' : ''}">${c}</div>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('onboarding-list').innerHTML = state.clientes.map(c => {
+    const pct = Math.round(Math.random() * 60 + 30);
+    return `
+    <div class="card" style="margin-bottom:10px;">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+        <div class="avatar">${c.nome[0]}</div>
+        <div><div style="font-weight:600;">${c.nome}</div><div style="font-size:11px;color:var(--text-3);">${c.pacote}</div></div>
+        <span class="badge badge-blue" style="margin-left:auto;">${pct}%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill blue" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCheck(i, key) {
+  let done = JSON.parse(localStorage.getItem(key) || '[]');
+  done.includes(i) ? done.splice(done.indexOf(i), 1) : done.push(i);
+  localStorage.setItem(key, JSON.stringify(done));
+  renderOnboarding();
+}
+
+// =============================================================
+// DADOS CADASTRAIS — pastas + detalhe editável
+// =============================================================
+let cadFiltro = 'ativos';
+
+function renderCadastros() {
+  // sempre volta para a lista ao entrar
+  document.getElementById('cad-list').style.display = 'block';
+  document.getElementById('cad-detail').classList.remove('open');
+
+  let lista = state.clientes.filter(c => {
+    if (cadFiltro === 'ativos') return !c.arquivado;
+    if (cadFiltro === 'arquivados') return c.arquivado;
+    return true;
+  });
+
+  document.getElementById('folder-grid').innerHTML = lista.map(c => `
+    <div class="folder-card" onclick="openClientDetail(${c.id})">
+      <div class="folder-icon">${icon(c.arquivado ? 'archive' : 'folder', 'icon-lg')}</div>
+      <div class="folder-name">${c.nome}</div>
+      <div class="folder-sub">${c.pacote} · R$ ${fmt(c.valor)}/mês</div>
+      <div style="margin-top:8px;">
+        <span class="badge badge-blue">${c.resp}</span>
+        ${c.arquivado ? '<span class="badge archived-tag">Arquivado</span>' : ''}
+      </div>
+    </div>
+  `).join('') + (cadFiltro !== 'arquivados' ? `
+    <div class="folder-card" onclick="openModal('modal-add-cliente')" style="border-style:dashed; opacity:.6;">
+      <div class="folder-icon">${icon('plus', 'icon-lg')}</div>
+      <div class="folder-name">Novo cliente</div>
+      <div class="folder-sub">Adicionar pasta</div>
+    </div>` : '');
+  applyIcons(document.getElementById('cad-list'));
+}
+
+function filtroCad(f, el) {
+  cadFiltro = f;
+  document.querySelectorAll('#cad-list .filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderCadastros();
+}
+
+function openClientDetail(id) {
+  const c = state.clientes.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('cad-list').style.display = 'none';
+  const det = document.getElementById('cad-detail');
+  det.classList.add('open');
+  det.innerHTML = `
+    <button class="btn btn-outline" style="margin-bottom:16px;" onclick="renderCadastros()">${icon('arrow-up','')} Voltar</button>
+    <div class="card">
+      <div class="detail-head">
+        <div class="detail-avatar">${c.nome[0]}</div>
+        <div>
+          <div style="font-size:18px; font-weight:700;">${c.nome}</div>
+          <div style="font-size:12px; color:var(--text-3);">${c.pacote} · R$ ${fmt(c.valor)}/mês ${c.arquivado ? '· <span class="badge archived-tag">Arquivado</span>' : ''}</div>
+        </div>
+        <div class="detail-actions">
+          <button class="btn btn-outline" onclick="archiveClient(${c.id})">${icon('archive')} ${c.arquivado ? 'Desarquivar' : 'Arquivar'}</button>
+          <button class="btn btn-danger" onclick="deleteClient(${c.id})">${icon('trash')} Apagar</button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group"><label>Nome</label><input id="d-nome" value="${c.nome||''}"></div>
+        <div class="form-group"><label>Pacote</label>
+          <select id="d-pacote">
+            ${['Starter','Growth','Premium','Enterprise'].map(p=>`<option ${p===c.pacote?'selected':''}>${p}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label>Valor mensal (R$)</label><input id="d-valor" type="number" value="${c.valor||0}"></div>
+        <div class="form-group"><label>Responsável</label><input id="d-resp" value="${c.resp||''}"></div>
+        <div class="form-group"><label>CNPJ</label><input id="d-cnpj" value="${c.cnpj||''}"></div>
+        <div class="form-group"><label>E-mail</label><input id="d-email" value="${c.email||''}"></div>
+        <div class="form-group"><label>WhatsApp</label><input id="d-wpp" value="${c.wpp||''}"></div>
+        <div class="form-group"><label>Vencimento</label><input id="d-venc" type="date" value="${c.venc||''}"></div>
+        <div class="form-group"><label>Status</label>
+          <select id="d-status">
+            ${['Ativo','Em risco','Inativo'].map(s=>`<option ${s===c.status?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Anotações do cliente</label>
+        <textarea id="d-notas" class="note-area">${c.notas||''}</textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveClientDetail(${c.id})">${icon('save')} Salvar alterações</button>
+    </div>
+
+    <div class="section-hd"><div class="section-title">Resumo de performance</div></div>
+    <div class="grid g4">
+      <div class="card card-sm"><div class="card-label">${icon('megaphone')} Verba Ads</div><div class="card-value" style="font-size:20px;">R$ ${fmt(c.adSpend||0)}</div></div>
+      <div class="card card-sm"><div class="card-label">${icon('target')} Leads</div><div class="card-value" style="font-size:20px;">${c.leads||0}</div></div>
+      <div class="card card-sm"><div class="card-label">${icon('dollar')} CPL</div><div class="card-value" style="font-size:20px;">R$ ${(c.cpl||0).toFixed(2)}</div></div>
+      <div class="card card-sm"><div class="card-label">${icon('trending-up')} ROAS</div><div class="card-value success" style="font-size:20px;">${c.roas||0}x</div></div>
+    </div>`;
+  applyIcons(det);
+}
+
+function saveClientDetail(id) {
+  const c = state.clientes.find(x => x.id === id);
+  if (!c) return;
+  c.nome = document.getElementById('d-nome').value.trim() || c.nome;
+  c.pacote = document.getElementById('d-pacote').value;
+  c.valor = +document.getElementById('d-valor').value || 0;
+  c.resp = document.getElementById('d-resp').value;
+  c.cnpj = document.getElementById('d-cnpj').value;
+  c.email = document.getElementById('d-email').value;
+  c.wpp = document.getElementById('d-wpp').value;
+  c.venc = document.getElementById('d-venc').value;
+  c.status = document.getElementById('d-status').value;
+  c.notas = document.getElementById('d-notas').value;
+  saveState();
+  atualizarSelects();
+  openClientDetail(id);
+}
+
+function archiveClient(id) {
+  const c = state.clientes.find(x => x.id === id);
+  if (!c) return;
+  c.arquivado = !c.arquivado;
+  saveState();
+  renderCadastros();
+}
+
+function deleteClient(id) {
+  const c = state.clientes.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm(`Apagar definitivamente a pasta de "${c.nome}"? Esta ação não pode ser desfeita.`)) return;
+  state.clientes = state.clientes.filter(x => x.id !== id);
+  saveState();
+  atualizarSelects();
+  renderCadastros();
+}
+
+// =============================================================
+// TAREFAS KANBAN
+// =============================================================
+const kanbanCols = [
+  { id:'solicitacao', label:'Solicitação', color:'#6b7280' },
+  { id:'viabilidade', label:'Viabilidade', color:'#f59e0b' },
+  { id:'producao',    label:'Produção',    color:'#3b82f6' },
+  { id:'aprovacao',   label:'Aprovação',   color:'#8b5cf6' },
+  { id:'entregue',    label:'Entregue',    color:'#10b981' },
+];
+
+let taskView = 'kanban';
+
+function setTaskView(v) {
+  taskView = v;
+  document.getElementById('vt-kanban').classList.toggle('active', v === 'kanban');
+  document.getElementById('vt-lista').classList.toggle('active', v === 'lista');
+  document.getElementById('kanban-board').style.display = v === 'kanban' ? 'flex' : 'none';
+  document.getElementById('task-list').style.display = v === 'lista' ? 'block' : 'none';
+  renderTarefas();
+}
+
+function renderTarefas() {
+  if (taskView === 'kanban') renderKanban(); else renderTaskList();
+  document.getElementById('badge-tarefas').textContent = state.tarefas.filter(t => t.coluna === 'aprovacao').length;
+}
+
+function renderKanban() {
+  const board = document.getElementById('kanban-board');
+  board.innerHTML = kanbanCols.map(col => {
+    const cards = state.tarefas.filter(t => t.coluna === col.id);
+    return `
+    <div class="kanban-col">
+      <div class="kanban-hd" style="background:${col.color}18; color:${col.color};">
+        <span>${col.label}</span>
+        <span style="background:${col.color}; color:#fff; padding:1px 7px; border-radius:10px; font-size:10px;">${cards.length}</span>
+      </div>
+      <div class="kanban-body" data-col="${col.id}"
+           ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'${col.id}')">
+        ${cards.map(t => `
+          <div class="kanban-card" draggable="true" data-id="${t.id}" ondragstart="onDragStart(event,${t.id})" ondragend="onDragEnd(event)">
+            <div class="kanban-card-handle">${icon('grip')}</div>
+            <div class="kanban-card-client">${t.cliente||'—'}</div>
+            <div class="kanban-card-title">${t.titulo}</div>
+            <div class="kanban-card-footer">
+              <span class="badge badge-gray">${t.resp||'—'}</span>
+              ${t.prazo && t.prazo !== '—' ? `<span style="font-size:10px; color:var(--text-3); display:inline-flex; align-items:center; gap:3px;">${icon('calendar')} ${t.prazo}</span>` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }).join('');
+  applyIcons(board);
+}
+
+function renderTaskList() {
+  const cont = document.getElementById('task-list');
+  cont.innerHTML = kanbanCols.map(col => {
+    const cards = state.tarefas.filter(t => t.coluna === col.id);
+    if (!cards.length) return '';
+    const done = col.id === 'entregue';
+    return `
+    <div class="tasklist-group">
+      <div class="tasklist-head" style="color:${col.color};">
+        <span style="width:8px;height:8px;border-radius:50%;background:${col.color};display:inline-block;"></span>
+        ${col.label} (${cards.length})
+      </div>
+      ${cards.map(t => `
+        <div class="tasklist-row">
+          <div class="check-box ${done ? 'done' : ''}" onclick="toggleTaskDone(${t.id})">${done ? icon('check') : ''}</div>
+          <div>
+            <div class="check-label ${done ? 'done-text' : ''}" style="font-weight:500;">${t.titulo}</div>
+            <div class="check-meta">${t.cliente||'—'} · ${t.resp||'—'} ${t.prazo && t.prazo!=='—' ? '· '+t.prazo : ''}</div>
+          </div>
+          <div class="tasklist-meta">
+            <select class="task-select" onchange="moveTask(${t.id}, this.value)">
+              ${kanbanCols.map(k=>`<option value="${k.id}" ${k.id===t.coluna?'selected':''}>${k.label}</option>`).join('')}
+            </select>
+            <button class="icon-btn danger" title="Apagar" onclick="deleteTask(${t.id})">${icon('trash')}</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+  }).join('') || '<div class="card" style="text-align:center; color:var(--text-3);">Nenhuma tarefa ainda.</div>';
+  applyIcons(cont);
+}
+
+// drag & drop
+let dragId = null;
+function onDragStart(e, id) { dragId = id; e.currentTarget.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
+function onDragEnd(e) { e.currentTarget.classList.remove('dragging'); document.querySelectorAll('.kanban-body').forEach(b=>b.classList.remove('drag-over')); }
+function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function onDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function onDrop(e, col) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  moveTask(dragId, col);
+}
+function moveTask(id, col) {
+  const t = state.tarefas.find(x => x.id === id);
+  if (!t) return;
+  t.coluna = col;
+  saveState();
+  renderTarefas();
+}
+function toggleTaskDone(id) {
+  const t = state.tarefas.find(x => x.id === id);
+  if (!t) return;
+  t.coluna = t.coluna === 'entregue' ? 'producao' : 'entregue';
+  saveState();
+  renderTarefas();
+}
+function deleteTask(id) {
+  state.tarefas = state.tarefas.filter(x => x.id !== id);
+  saveState();
+  renderTarefas();
+}
+
+// =============================================================
+// CAMPANHAS
+// =============================================================
+function filtroCamp(f, el) {
+  state.campFiltro = f;
+  document.querySelectorAll('#camp-filters .filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderCampanhas();
+}
+
+function renderCampanhas() {
+  const lista = state.campanhas.filter(c => {
+    if (state.campFiltro === 'agencia') return c.origem === 'agencia';
+    if (state.campFiltro === 'clientes') return c.origem === 'cliente';
+    return true;
+  });
+
+  const totalGasto = lista.reduce((a, c) => a + c.gasto, 0);
+  const totalLeads = lista.reduce((a, c) => a + c.leads, 0);
+  const cplMedio  = totalLeads ? totalGasto / totalLeads : 0;
+  document.getElementById('camp-kpis').innerHTML = [
+    { ic:'megaphone', label:'Total gasto', value:'R$ ' + fmt(totalGasto) },
+    { ic:'target', label:'Total leads',  value: totalLeads },
+    { ic:'dollar', label:'CPL médio',   value:'R$ ' + cplMedio.toFixed(2) },
+    { ic:'flame', label:'Campanhas ativas', value: lista.filter(c=>c.status==='Ativa').length },
+  ].map(k => `
+    <div class="card card-sm">
+      <div class="card-label"><span class="card-icon">${icon(k.ic)}</span>${k.label}</div>
+      <div class="card-value" style="font-size:22px;">${k.value}</div>
+    </div>`).join('');
+
+  document.getElementById('tbody-camp').innerHTML = lista.map(c => {
+    const origemBadge = c.origem === 'agencia'
+      ? `<span class="badge badge-blue" style="display:inline-flex;align-items:center;gap:4px;">${icon('building')} Agência</span>`
+      : `<span class="badge badge-gray" style="display:inline-flex;align-items:center;gap:4px;">${icon('briefcase')} ${c.cliente}</span>`;
+    return `
+    <tr>
+      <td><strong>${c.nome}</strong></td>
+      <td>${origemBadge}</td>
+      <td>R$ ${fmt(c.verba)}</td>
+      <td>R$ ${fmt(c.gasto)} <span style="font-size:10px;color:var(--text-3);">(${Math.round(c.gasto/c.verba*100)}%)</span></td>
+      <td>${c.leads}</td>
+      <td>R$ ${c.cpl.toFixed(2)}</td>
+      <td>${c.roas}x</td>
+      <td><span class="badge ${c.status === 'Ativa' ? 'badge-green' : 'badge-gray'}">${c.status}</span></td>
+    </tr>`;
+  }).join('');
+  applyIcons(document.getElementById('tbody-camp'));
+  applyIcons(document.getElementById('camp-kpis'));
+}
+
+// =============================================================
+// FINANCEIRO
+// =============================================================
+function renderFinanceiro(dias) {
+  const fin = state.financeiro;
+  const entradas = fin.filter(f=>f.valor>0).reduce((a,f)=>a+f.valor,0);
+  const saidas   = Math.abs(fin.filter(f=>f.valor<0).reduce((a,f)=>a+f.valor,0));
+  const liquido  = entradas - saidas;
+  document.getElementById('fin-kpis').innerHTML = [
+    { ic:'dollar', label:'MRR', value:'R$ '+fmt(state.real.mrr||entradas), cls:'success' },
+    { ic:'arrow-up', label:'Entradas', value:'R$ '+fmt(entradas), cls:'success' },
+    { ic:'arrow-down', label:'Saídas', value:'R$ '+fmt(saidas), cls:'danger' },
+    { ic:'trending-up', label:'Líquido', value:'R$ '+fmt(liquido), cls: liquido>=0?'success':'danger' },
+  ].map(k=>`
+    <div class="card card-sm">
+      <div class="card-label">${icon(k.ic)} ${k.label}</div>
+      <div class="card-value ${k.cls}" style="font-size:22px;">${k.value}</div>
+    </div>`).join('');
+  applyIcons(document.getElementById('fin-kpis'));
+
+  document.getElementById('tbody-fin').innerHTML = fin.map(f=>`
+    <tr>
+      <td>${f.data}</td><td>${f.desc}</td><td>${f.cliente}</td>
+      <td><span class="badge ${f.tipo==='Entrada'?'badge-green':'badge-red'}">${f.tipo}</span></td>
+      <td style="font-weight:600; color:${f.valor>=0?'var(--success)':'var(--danger)'};">${f.valor>=0?'+':''}R$ ${fmt(Math.abs(f.valor))}</td>
+    </tr>`).join('');
+}
+
+function filtroFin(dias, el) {
+  document.querySelectorAll('#fin-filters .filter-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderFinanceiro(dias);
+}
+
+// =============================================================
+// ASSETS
+// =============================================================
+function renderAssets() {
+  const statusC = { 'Aprovado':'badge-green','Aguardando aprovação':'badge-orange','Em produção':'badge-blue','Reprovado':'badge-red' };
+  document.getElementById('tbody-assets').innerHTML = state.assets.map(a=>`
+    <tr>
+      <td><strong>${a.nome}</strong></td>
+      <td>${a.cliente}</td>
+      <td>${a.tipo}</td>
+      <td><span class="badge ${statusC[a.status]||'badge-gray'}">${a.status}</span></td>
+      <td><a href="${a.link}" target="_blank" style="color:var(--primary); font-size:12px; display:inline-flex; align-items:center; gap:4px;">${icon('link')} Abrir</a></td>
+      <td style="color:var(--text-3); font-size:12px;">${a.data}</td>
+    </tr>`).join('');
+  applyIcons(document.getElementById('tbody-assets'));
+}
+
+// =============================================================
+// INTEGRAÇÕES
+// =============================================================
+function renderIntegracoes() {
+  const ints = [
+    { ic:'megaphone', nome:'Meta Ads', desc:'Importa gastos, leads e CPL automaticamente via API', status:'Automático', cls:'badge-green', how:'Conecte via n8n → Meta Ads API → Supabase' },
+    { ic:'calendar', nome:'Google Calendar', desc:'Reuniões aparecem no módulo Atendimento', status:'Automático', cls:'badge-green', how:'n8n → Google Calendar → banco de dados' },
+    { ic:'dollar', nome:'Asaas / HyperCash', desc:'MRR, entradas e saídas sincronizados', status:'Automático', cls:'badge-green', how:'Webhook de pagamento → n8n → Supabase' },
+    { ic:'clipboard', nome:'Google Sheets', desc:'Plano de mídia e dados manuais', status:'Semi-auto', cls:'badge-orange', how:'n8n → Google Sheets → banco de dados (sync diário)' },
+    { ic:'folder', nome:'Google Drive', desc:'Assets e criativos por cliente', status:'Manual', cls:'badge-gray', how:'Link salvo manualmente no módulo Assets' },
+    { ic:'message', nome:'WhatsApp Business', desc:'Histórico de atendimento', status:'Em breve', cls:'badge-gray', how:'API oficial ou Z-API → n8n → Supabase' },
+  ];
+  document.getElementById('integracoes-list').innerHTML = ints.map(it=>`
+    <div class="card" style="margin-bottom:12px; display:flex; align-items:center; gap:16px;">
+      <div style="width:44px; height:44px; border-radius:10px; background:var(--primary-xlight); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:22px;">${icon(it.ic)}</div>
+      <div style="flex:1;">
+        <div style="font-weight:600; margin-bottom:2px;">${it.nome}</div>
+        <div style="font-size:12px; color:var(--text-2);">${it.desc}</div>
+        <div style="font-size:11px; color:var(--text-3); margin-top:4px; display:flex; align-items:center; gap:4px;">${icon('settings')} ${it.how}</div>
+      </div>
+      <span class="badge ${it.cls}">${it.status}</span>
+    </div>`).join('');
+  applyIcons(document.getElementById('integracoes-list'));
+}
+
+// =============================================================
+// ATENDIMENTO
+// =============================================================
+function renderAtendimento() {
+  const rl = document.getElementById('reunioes-list');
+  rl.innerHTML = state.reunioes.length ? state.reunioes.map((r,i)=>`
+    <div class="card" style="margin-bottom:10px; display:flex; align-items:center; gap:12px;">
+      <div class="avatar">${(r.cliente||'?')[0]}</div>
+      <div style="flex:1;">
+        <div style="font-weight:600; font-size:13px;">${r.cliente}</div>
+        <div style="font-size:11px; color:var(--text-3); display:flex; align-items:center; gap:4px;">${icon('calendar')} ${r.data} · ${r.tipo}</div>
+      </div>
+      <span class="badge ${r.status==='Confirmada'?'badge-green':'badge-orange'}">${r.status}</span>
+      <button class="icon-btn" title="Concluir reunião" onclick="completeReuniao(${i})">${icon('check')}</button>
+    </div>`).join('') : '<div class="card" style="text-align:center; color:var(--text-3);">Nenhuma reunião agendada.</div>';
+
+  const al = document.getElementById('atend-list');
+  al.innerHTML = state.solicitacoes.length ? state.solicitacoes.map(s=>`
+    <div class="card" style="margin-bottom:10px; display:flex; align-items:center; gap:12px;">
+      <div class="avatar" style="background:var(--warning);">${(s.cliente||'?')[0]}</div>
+      <div style="flex:1;">
+        <div style="font-weight:600; font-size:13px;">${s.req}</div>
+        <div style="font-size:11px; color:var(--text-3);">${s.cliente} · ${s.data}</div>
+      </div>
+      <span class="badge ${s.prioridade==='Alta'?'badge-red':'badge-gray'}">${s.prioridade}</span>
+      <button class="icon-btn" title="Concluir solicitação" onclick="completeSolic(${s.id})">${icon('check')}</button>
+    </div>`).join('') : '<div class="card" style="text-align:center; color:var(--text-3);">Nenhuma solicitação aberta. 🎉</div>'.replace('🎉','');
+  applyIcons(rl); applyIcons(al);
+}
+
+function addSolic() {
+  const req = document.getElementById('ns-req').value.trim();
+  if (!req) { alert('Descreva a solicitação.'); return; }
+  state.solicitacoes.push({
+    id: Date.now(),
+    req,
+    cliente: document.getElementById('ns-cliente').value || '—',
+    prioridade: document.getElementById('ns-prioridade').value,
+    data: 'Hoje'
+  });
+  saveState();
+  document.getElementById('ns-req').value = '';
+  closeModal('modal-add-solic');
+  renderAtendimento();
+}
+
+function completeSolic(id) {
+  state.solicitacoes = state.solicitacoes.filter(s => s.id !== id);
+  saveState();
+  renderAtendimento();
+}
+
+function addReuniao() {
+  const data = document.getElementById('nr-data').value.trim();
+  const cliente = document.getElementById('nr-cliente').value;
+  if (!cliente || !data) { alert('Selecione o cliente e a data.'); return; }
+  state.reunioes.push({
+    cliente, data,
+    tipo: document.getElementById('nr-tipo').value,
+    status: document.getElementById('nr-status').value
+  });
+  saveState();
+  document.getElementById('nr-data').value = '';
+  closeModal('modal-add-reuniao');
+  renderAtendimento();
+}
+
+function completeReuniao(i) {
+  state.reunioes.splice(i, 1);
+  saveState();
+  renderAtendimento();
+}
+
+// =============================================================
+// CLIENTE VIEW
+// =============================================================
+function renderClienteView() {
+  const sel = document.getElementById('sel-cliente-view');
+  sel.innerHTML = '<option value="">Selecione...</option>' + state.clientes.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+}
+
+function gerarLink() {
+  const sel = document.getElementById('sel-cliente-view');
+  const cliente = state.clientes.find(c=>c.id==sel.value);
+  if (!cliente) { alert('Selecione um cliente.'); return; }
+  const link = `${location.origin}/cliente/${encodeURIComponent(cliente.nome.toLowerCase().replace(/\s+/g,'-'))}`;
+  const el = document.getElementById('link-result');
+  el.style.display = 'block';
+  el.innerHTML = `<strong>${link}</strong> <button class="btn btn-outline" style="font-size:10px; margin-left:8px;" onclick="navigator.clipboard.writeText('${link}')">Copiar</button>`;
+  applyIcons(el);
+}
+
+// =============================================================
+// PLANO DE MÍDIA
+// =============================================================
+function renderMidia() {
+  document.getElementById('midia-cards').innerHTML = state.clientes.map(c=>{
+    const pct = Math.round(Math.random()*40+30);
+    return `
+    <div class="card" style="margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+        <div class="avatar">${c.nome[0]}</div>
+        <div>
+          <div style="font-weight:700; font-size:15px;">${c.nome}</div>
+          <div style="font-size:11px;color:var(--text-3);">Junho 2026 · ${c.pacote}</div>
+        </div>
+        <span class="badge badge-blue" style="margin-left:auto;">Meta: R$ ${fmt(c.adSpend * 1.3)}</span>
+      </div>
+      <div class="grid g4" style="gap:12px; margin-bottom:14px;">
+        <div><div class="card-label">Investimento</div><div style="font-size:18px;font-weight:600;">R$ ${fmt(c.adSpend * 1.3)}</div></div>
+        <div><div class="card-label">Leads esperados</div><div style="font-size:18px;font-weight:600;">${Math.round(c.leads * 1.4)}</div></div>
+        <div><div class="card-label">CPL alvo</div><div style="font-size:18px;font-weight:600;">R$ ${(c.cpl * 0.9).toFixed(2)}</div></div>
+        <div><div class="card-label">ROAS esperado</div><div style="font-size:18px;font-weight:600;">${(c.roas * 1.1).toFixed(1)}x</div></div>
+      </div>
+      <div class="progress-bar" style="height:10px;"><div class="progress-fill blue" style="width:${pct}%;"></div></div>
+      <div style="font-size:10px;color:var(--text-3);margin-top:4px;">${pct}% da verba utilizada</div>
+    </div>`;
+  }).join('');
+}
+
+// =============================================================
+// MODAIS
+// =============================================================
+function openModal(id) {
+  if (id === 'modal-meta') preencherModal();
+  document.getElementById(id).classList.add('open');
+  applyIcons(document.getElementById(id));
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+function preencherModal() {
+  const m = state.metas, r = state.real;
+  document.getElementById('m-mrr').value = m.mrr;
+  document.getElementById('m-clientes').value = m.clientes;
+  document.getElementById('m-leads').value = m.leads;
+  document.getElementById('m-cpl').value = m.cpl;
+  document.getElementById('m-ads').value = m.ads;
+  document.getElementById('m-reunioes').value = m.reunioes;
+  document.getElementById('r-mrr').value = r.mrr;
+  document.getElementById('r-clientes').value = r.clientes;
+  document.getElementById('r-leads').value = r.leads;
+  document.getElementById('r-ads').value = r.ads;
+  document.getElementById('r-new-val').value = r.newVal;
+  document.getElementById('r-churn-val').value = r.churnVal;
+  document.getElementById('r-new-n').value = r.newN;
+  document.getElementById('r-churn-n').value = r.churnN;
+  document.getElementById('r-hoje').value = r.hoje;
+  document.getElementById('r-reunioes').value = r.reunioes;
+}
+
+function salvarTudo() {
+  state.metas = {
+    mrr: +document.getElementById('m-mrr').value || 0,
+    clientes: +document.getElementById('m-clientes').value || 0,
+    leads: +document.getElementById('m-leads').value || 0,
+    cpl: +document.getElementById('m-cpl').value || 0,
+    ads: +document.getElementById('m-ads').value || 0,
+    reunioes: +document.getElementById('m-reunioes').value || 0,
+  };
+  state.real = {
+    mrr: +document.getElementById('r-mrr').value || 0,
+    clientes: +document.getElementById('r-clientes').value || 0,
+    leads: +document.getElementById('r-leads').value || 0,
+    ads: +document.getElementById('r-ads').value || 0,
+    newVal: +document.getElementById('r-new-val').value || 0,
+    churnVal: +document.getElementById('r-churn-val').value || 0,
+    newN: +document.getElementById('r-new-n').value || 0,
+    churnN: +document.getElementById('r-churn-n').value || 0,
+    hoje: +document.getElementById('r-hoje').value || 0,
+    reunioes: +document.getElementById('r-reunioes').value || 0,
+  };
+  saveState();
+  closeModal('modal-meta');
+  renderResumo();
+}
+
+function addCliente() {
+  const nome = document.getElementById('nc-nome').value.trim();
+  if (!nome) { alert('Digite o nome do cliente.'); return; }
+  state.clientes.push({
+    id: Date.now(), nome, pacote: document.getElementById('nc-pacote').value,
+    valor: +document.getElementById('nc-valor').value || 0,
+    resp: document.getElementById('nc-resp').value,
+    venc: document.getElementById('nc-venc').value,
+    wpp: document.getElementById('nc-wpp').value,
+    email: '', cnpj: '', notas: '', arquivado: false,
+    leads: 0, adSpend: 0, cpl: 0, roas: 0, status: 'Ativo'
+  });
+  saveState();
+  closeModal('modal-add-cliente');
+  renderCadastros();
+  atualizarSelects();
+}
+
+function addTarefa() {
+  const titulo = document.getElementById('nt-titulo').value.trim();
+  if (!titulo) { alert('Digite o título.'); return; }
+  state.tarefas.push({
+    id: Date.now(), titulo,
+    cliente: document.getElementById('nt-cliente').value,
+    resp: document.getElementById('nt-resp').value,
+    prazo: document.getElementById('nt-prazo').value || '—',
+    coluna: document.getElementById('nt-coluna').value
+  });
+  saveState();
+  closeModal('modal-add-tarefa');
+  renderTarefas();
+}
+
+function addAsset() {
+  state.assets.push({
+    nome: document.getElementById('na-nome').value,
+    cliente: document.getElementById('na-cliente').value,
+    tipo: document.getElementById('na-tipo').value,
+    status: document.getElementById('na-status').value,
+    link: document.getElementById('na-link').value,
+    data: new Date().toLocaleDateString('pt-BR')
+  });
+  saveState();
+  closeModal('modal-add-asset');
+  renderAssets();
+}
+
+// =============================================================
+// CONFIGURAÇÕES / CORES
+// =============================================================
+function setCssVar(v, val) {
+  document.documentElement.style.setProperty(v, val);
+  localStorage.setItem('css-' + v, val);
+}
+
+function resetColors() {
+  const defaults = {
+    '--primary':'#1e40af','--primary-light':'#3b82f6','--bg':'#f5f7fa','--success':'#10b981'
+  };
+  Object.entries(defaults).forEach(([k,v]) => {
+    document.documentElement.style.setProperty(k, v);
+    localStorage.removeItem('css-' + k);
+  });
+  document.getElementById('cfg-primary').value = defaults['--primary'];
+  document.getElementById('cfg-accent').value  = defaults['--primary-light'];
+  document.getElementById('cfg-bg').value      = defaults['--bg'];
+  document.getElementById('cfg-success').value = defaults['--success'];
+}
+
+function salvarMetas() { salvarTudo(); }
+function salvarCfg() { saveState(); }
+
+function loadSavedColors() {
+  [['--primary','cfg-primary'],['--primary-light','cfg-accent'],['--bg','cfg-bg'],['--success','cfg-success']].forEach(([v,id])=>{
+    const saved = localStorage.getItem('css-' + v);
+    if (saved) { document.documentElement.style.setProperty(v, saved); document.getElementById(id).value = saved; }
+  });
+}
+
+// =============================================================
+// BANNER
+// =============================================================
+function changeBanner(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('banner-img');
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+// =============================================================
+// UTILS
+// =============================================================
+function fmt(n) {
+  return Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function pctBadge(real, meta) {
+  if (!meta) return '';
+  const pct = Math.round((real / meta) * 100);
+  const cls = pct >= 100 ? 'badge-green' : pct >= 70 ? 'badge-orange' : 'badge-red';
+  return `<span class="badge ${cls}">${pct}%</span>`;
+}
+
+function atualizarSelects() {
+  // selects que usam o NOME do cliente como valor
+  ['nt-cliente', 'na-cliente', 'nr-cliente', 'ns-cliente'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = '<option value="">Selecione...</option>' + state.clientes.filter(c=>!c.arquivado).map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');
+  });
+  // select que usa o ID do cliente como valor
+  const sv = document.getElementById('sel-cliente-view');
+  if (sv) sv.innerHTML = '<option value="">Selecione...</option>' + state.clientes.filter(c=>!c.arquivado).map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+}
+
+// =============================================================
+// INIT
+// =============================================================
+function init() {
+  loadState();
+  loadSavedColors();
+
+  // Data no topbar
+  const now = new Date();
+  document.getElementById('topbar-date').textContent = now.toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+  document.getElementById('banner-mes-label').textContent = now.toLocaleDateString('pt-BR', { month:'long', year:'numeric' }).replace(/^\w/, c => c.toUpperCase());
+
+  atualizarSelects();
+  applyIcons(document);   // popula todos os ícones estáticos
+  renderResumo();
+}
+
+init();
+</script>
+</body>
+</html>
