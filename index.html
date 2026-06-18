@@ -365,7 +365,11 @@ label { font-size: 11px; font-weight: 600; color: var(--text-2); display: block;
     <span class="nav-icon" data-icon="settings"></span> Configurações
   </div>
 
-  <div class="sidebar-footer">v1.0 · Dissenti4l Agency OS</div>
+  <div class="sidebar-footer">
+    <div id="user-email" style="margin-bottom:6px; word-break:break-all;"></div>
+    <button class="btn btn-outline" style="font-size:11px; width:100%; justify-content:center;" onclick="doLogout()">Sair</button>
+    <div style="margin-top:8px; opacity:.6;">v2.0 · Agency OS</div>
+  </div>
 </aside>
 
 <!-- ============ MAIN ============ -->
@@ -1045,6 +1049,25 @@ label { font-size: 11px; font-weight: 600; color: var(--text-2); display: block;
   </div>
 </div>
 
+<!-- ============ LOGIN ============ -->
+<div id="login-overlay" style="position:fixed; inset:0; background:var(--bg); z-index:2000; display:flex; align-items:center; justify-content:center;">
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:32px; width:360px; max-width:92vw; box-shadow:0 20px 60px rgba(0,0,0,.12);">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+      <div class="sidebar-logo">D</div>
+      <div><div style="font-size:16px; font-weight:700;">Dissenti4l</div><div style="font-size:10px; color:var(--text-3); text-transform:uppercase; letter-spacing:.8px;">Agency OS</div></div>
+    </div>
+    <p style="font-size:12px; color:var(--text-3); margin:10px 0 20px;">Entre para acessar o painel.</p>
+    <div class="form-group"><label>E-mail</label><input type="email" id="login-email" placeholder="voce@email.com"></div>
+    <div class="form-group"><label>Senha</label><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div id="login-error" style="display:none; color:var(--danger); font-size:12px; margin-bottom:10px;"></div>
+    <button class="btn btn-primary" style="width:100%; justify-content:center; padding:10px;" onclick="doLogin()">Entrar</button>
+    <div id="login-loading" style="display:none; text-align:center; font-size:12px; color:var(--text-3); margin-top:12px;">Carregando dados…</div>
+  </div>
+</div>
+
+<!-- ============ SUPABASE ============ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <!-- ============ JAVASCRIPT ============ -->
 <script>
 // =============================================================
@@ -1153,13 +1176,56 @@ let state = {
   campFiltro: 'todas',
 };
 
-// Carrega dados salvos (chave versionada — bump força recarregar a nova estrutura)
-const STORAGE_KEY = 'dissenti4l-state-v2';
-function loadState() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) { try { const s = JSON.parse(saved); Object.assign(state, s); } catch(e){} }
+// =============================================================
+// CONEXÃO SUPABASE  (edite aqui se trocar de projeto)
+// =============================================================
+const SB_URL = 'https://bawxqtardgryfnbbdxic.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhd3hxdGFyZGdyeWZuYmJkeGljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MzQ4NjIsImV4cCI6MjA5NzMxMDg2Mn0.OTzFAmI_jD3ieVaArIjOGXPOFN7jYCrUKZJkYwjtse8';
+const db = supabase.createClient(SB_URL, SB_KEY);
+
+// saveState não é mais usado (dados vão direto pro banco). Mantido como no-op.
+function saveState() {}
+
+// Helpers
+const N = v => v == null ? 0 : Number(v);
+const orNull = v => (v === '' || v == null) ? null : v;
+
+// Carrega TODAS as tabelas do banco para o state em memória
+async function loadAll() {
+  const [cli, mt, rm, tf, as, fin, re, so, ca] = await Promise.all([
+    db.from('clientes').select('*').order('id'),
+    db.from('metas').select('*').eq('id',1).maybeSingle(),
+    db.from('real_mes').select('*').eq('id',1).maybeSingle(),
+    db.from('tarefas').select('*').order('id'),
+    db.from('assets').select('*').order('id'),
+    db.from('financeiro').select('*').order('id'),
+    db.from('reunioes').select('*').order('id'),
+    db.from('solicitacoes').select('*').order('id'),
+    db.from('campanhas').select('*').order('id'),
+  ]);
+
+  state.clientes = (cli.data||[]).map(r => ({
+    id:r.id, nome:r.nome, pacote:r.pacote, valor:N(r.valor), resp:r.resp, venc:r.venc||'',
+    wpp:r.wpp||'', email:r.email||'', cnpj:r.cnpj||'', leads:N(r.leads), adSpend:N(r.ad_spend),
+    cpl:N(r.cpl), roas:N(r.roas), status:r.status, arquivado:!!r.arquivado, notas:r.notas||''
+  }));
+
+  if (mt.data) state.metas = { mrr:N(mt.data.mrr), clientes:N(mt.data.clientes), leads:N(mt.data.leads), cpl:N(mt.data.cpl), ads:N(mt.data.ads), reunioes:N(mt.data.reunioes) };
+  if (rm.data) state.real = { mrr:N(rm.data.mrr), clientes:N(rm.data.clientes), leads:N(rm.data.leads), ads:N(rm.data.ads), newVal:N(rm.data.new_val), churnVal:N(rm.data.churn_val), newN:N(rm.data.new_n), churnN:N(rm.data.churn_n), hoje:N(rm.data.hoje), reunioes:N(rm.data.reunioes) };
+
+  state.tarefas      = tf.data || [];
+  state.assets       = as.data || [];
+  state.financeiro   = (fin.data||[]).map(r => ({ id:r.id, data:r.data, desc:r.descricao, cliente:r.cliente, tipo:r.tipo, valor:N(r.valor) }));
+  state.reunioes     = re.data || [];
+  state.solicitacoes = so.data || [];
+  state.campanhas    = (ca.data||[]).map(r => ({ id:r.id, nome:r.nome, origem:r.origem, cliente:r.cliente, verba:N(r.verba), gasto:N(r.gasto), leads:N(r.leads), cpl:N(r.cpl), roas:N(r.roas), status:r.status }));
 }
-function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+// Recarrega do banco e re-renderiza a página atual
+async function refresh(render) {
+  await loadAll();
+  if (typeof render === 'function') render();
+}
 
 // =============================================================
 // NAVEGAÇÃO
@@ -1434,38 +1500,38 @@ function openClientDetail(id) {
   applyIcons(det);
 }
 
-function saveClientDetail(id) {
-  const c = state.clientes.find(x => x.id === id);
-  if (!c) return;
-  c.nome = document.getElementById('d-nome').value.trim() || c.nome;
-  c.pacote = document.getElementById('d-pacote').value;
-  c.valor = +document.getElementById('d-valor').value || 0;
-  c.resp = document.getElementById('d-resp').value;
-  c.cnpj = document.getElementById('d-cnpj').value;
-  c.email = document.getElementById('d-email').value;
-  c.wpp = document.getElementById('d-wpp').value;
-  c.venc = document.getElementById('d-venc').value;
-  c.status = document.getElementById('d-status').value;
-  c.notas = document.getElementById('d-notas').value;
-  saveState();
+async function saveClientDetail(id) {
+  await db.from('clientes').update({
+    nome: document.getElementById('d-nome').value.trim(),
+    pacote: document.getElementById('d-pacote').value,
+    valor: +document.getElementById('d-valor').value || 0,
+    resp: document.getElementById('d-resp').value,
+    cnpj: document.getElementById('d-cnpj').value,
+    email: document.getElementById('d-email').value,
+    wpp: document.getElementById('d-wpp').value,
+    venc: orNull(document.getElementById('d-venc').value),
+    status: document.getElementById('d-status').value,
+    notas: document.getElementById('d-notas').value
+  }).eq('id', id);
+  await loadAll();
   atualizarSelects();
   openClientDetail(id);
 }
 
-function archiveClient(id) {
+async function archiveClient(id) {
   const c = state.clientes.find(x => x.id === id);
   if (!c) return;
-  c.arquivado = !c.arquivado;
-  saveState();
+  await db.from('clientes').update({ arquivado: !c.arquivado }).eq('id', id);
+  await loadAll();
   renderCadastros();
 }
 
-function deleteClient(id) {
+async function deleteClient(id) {
   const c = state.clientes.find(x => x.id === id);
   if (!c) return;
   if (!confirm(`Apagar definitivamente a pasta de "${c.nome}"? Esta ação não pode ser desfeita.`)) return;
-  state.clientes = state.clientes.filter(x => x.id !== id);
-  saveState();
+  await db.from('clientes').delete().eq('id', id);
+  await loadAll();
   atualizarSelects();
   renderCadastros();
 }
@@ -1569,24 +1635,24 @@ function onDrop(e, col) {
   e.currentTarget.classList.remove('drag-over');
   moveTask(dragId, col);
 }
-function moveTask(id, col) {
+async function moveTask(id, col) {
   const t = state.tarefas.find(x => x.id === id);
   if (!t) return;
-  t.coluna = col;
-  saveState();
+  t.coluna = col;            // atualização otimista (instantânea)
   renderTarefas();
+  await db.from('tarefas').update({ coluna: col }).eq('id', id);
 }
-function toggleTaskDone(id) {
+async function toggleTaskDone(id) {
   const t = state.tarefas.find(x => x.id === id);
   if (!t) return;
-  t.coluna = t.coluna === 'entregue' ? 'producao' : 'entregue';
-  saveState();
+  const novo = t.coluna === 'entregue' ? 'producao' : 'entregue';
+  t.coluna = novo;
   renderTarefas();
+  await db.from('tarefas').update({ coluna: novo }).eq('id', id);
 }
-function deleteTask(id) {
-  state.tarefas = state.tarefas.filter(x => x.id !== id);
-  saveState();
-  renderTarefas();
+async function deleteTask(id) {
+  await db.from('tarefas').delete().eq('id', id);
+  await refresh(renderTarefas);
 }
 
 // =============================================================
@@ -1721,7 +1787,7 @@ function renderIntegracoes() {
 // =============================================================
 function renderAtendimento() {
   const rl = document.getElementById('reunioes-list');
-  rl.innerHTML = state.reunioes.length ? state.reunioes.map((r,i)=>`
+  rl.innerHTML = state.reunioes.length ? state.reunioes.map((r)=>`
     <div class="card" style="margin-bottom:10px; display:flex; align-items:center; gap:12px;">
       <div class="avatar">${(r.cliente||'?')[0]}</div>
       <div style="flex:1;">
@@ -1729,7 +1795,7 @@ function renderAtendimento() {
         <div style="font-size:11px; color:var(--text-3); display:flex; align-items:center; gap:4px;">${icon('calendar')} ${r.data} · ${r.tipo}</div>
       </div>
       <span class="badge ${r.status==='Confirmada'?'badge-green':'badge-orange'}">${r.status}</span>
-      <button class="icon-btn" title="Concluir reunião" onclick="completeReuniao(${i})">${icon('check')}</button>
+      <button class="icon-btn" title="Concluir reunião" onclick="completeReuniao(${r.id})">${icon('check')}</button>
     </div>`).join('') : '<div class="card" style="text-align:center; color:var(--text-3);">Nenhuma reunião agendada.</div>';
 
   const al = document.getElementById('atend-list');
@@ -1746,47 +1812,42 @@ function renderAtendimento() {
   applyIcons(rl); applyIcons(al);
 }
 
-function addSolic() {
+async function addSolic() {
   const req = document.getElementById('ns-req').value.trim();
   if (!req) { alert('Descreva a solicitação.'); return; }
-  state.solicitacoes.push({
-    id: Date.now(),
+  await db.from('solicitacoes').insert({
     req,
     cliente: document.getElementById('ns-cliente').value || '—',
     prioridade: document.getElementById('ns-prioridade').value,
     data: 'Hoje'
   });
-  saveState();
   document.getElementById('ns-req').value = '';
   closeModal('modal-add-solic');
-  renderAtendimento();
+  await refresh(renderAtendimento);
 }
 
-function completeSolic(id) {
-  state.solicitacoes = state.solicitacoes.filter(s => s.id !== id);
-  saveState();
-  renderAtendimento();
+async function completeSolic(id) {
+  await db.from('solicitacoes').delete().eq('id', id);
+  await refresh(renderAtendimento);
 }
 
-function addReuniao() {
+async function addReuniao() {
   const data = document.getElementById('nr-data').value.trim();
   const cliente = document.getElementById('nr-cliente').value;
   if (!cliente || !data) { alert('Selecione o cliente e a data.'); return; }
-  state.reunioes.push({
+  await db.from('reunioes').insert({
     cliente, data,
     tipo: document.getElementById('nr-tipo').value,
     status: document.getElementById('nr-status').value
   });
-  saveState();
   document.getElementById('nr-data').value = '';
   closeModal('modal-add-reuniao');
-  renderAtendimento();
+  await refresh(renderAtendimento);
 }
 
-function completeReuniao(i) {
-  state.reunioes.splice(i, 1);
-  saveState();
-  renderAtendimento();
+async function completeReuniao(id) {
+  await db.from('reunioes').delete().eq('id', id);
+  await refresh(renderAtendimento);
 }
 
 // =============================================================
@@ -1870,8 +1931,8 @@ function preencherModal() {
   document.getElementById('r-reunioes').value = r.reunioes;
 }
 
-function salvarTudo() {
-  state.metas = {
+async function salvarTudo() {
+  const metas = {
     mrr: +document.getElementById('m-mrr').value || 0,
     clientes: +document.getElementById('m-clientes').value || 0,
     leads: +document.getElementById('m-leads').value || 0,
@@ -1879,58 +1940,58 @@ function salvarTudo() {
     ads: +document.getElementById('m-ads').value || 0,
     reunioes: +document.getElementById('m-reunioes').value || 0,
   };
-  state.real = {
+  const real = {
     mrr: +document.getElementById('r-mrr').value || 0,
     clientes: +document.getElementById('r-clientes').value || 0,
     leads: +document.getElementById('r-leads').value || 0,
     ads: +document.getElementById('r-ads').value || 0,
-    newVal: +document.getElementById('r-new-val').value || 0,
-    churnVal: +document.getElementById('r-churn-val').value || 0,
-    newN: +document.getElementById('r-new-n').value || 0,
-    churnN: +document.getElementById('r-churn-n').value || 0,
+    new_val: +document.getElementById('r-new-val').value || 0,
+    churn_val: +document.getElementById('r-churn-val').value || 0,
+    new_n: +document.getElementById('r-new-n').value || 0,
+    churn_n: +document.getElementById('r-churn-n').value || 0,
     hoje: +document.getElementById('r-hoje').value || 0,
     reunioes: +document.getElementById('r-reunioes').value || 0,
   };
-  saveState();
+  await db.from('metas').update(metas).eq('id', 1);
+  await db.from('real_mes').update(real).eq('id', 1);
   closeModal('modal-meta');
-  renderResumo();
+  await refresh(renderResumo);
 }
 
-function addCliente() {
+async function addCliente() {
   const nome = document.getElementById('nc-nome').value.trim();
   if (!nome) { alert('Digite o nome do cliente.'); return; }
-  state.clientes.push({
-    id: Date.now(), nome, pacote: document.getElementById('nc-pacote').value,
+  await db.from('clientes').insert({
+    nome,
+    pacote: document.getElementById('nc-pacote').value,
     valor: +document.getElementById('nc-valor').value || 0,
     resp: document.getElementById('nc-resp').value,
-    venc: document.getElementById('nc-venc').value,
+    venc: orNull(document.getElementById('nc-venc').value),
     wpp: document.getElementById('nc-wpp').value,
-    email: '', cnpj: '', notas: '', arquivado: false,
-    leads: 0, adSpend: 0, cpl: 0, roas: 0, status: 'Ativo'
+    status: 'Ativo', arquivado: false
   });
-  saveState();
   closeModal('modal-add-cliente');
+  await loadAll();
   renderCadastros();
   atualizarSelects();
 }
 
-function addTarefa() {
+async function addTarefa() {
   const titulo = document.getElementById('nt-titulo').value.trim();
   if (!titulo) { alert('Digite o título.'); return; }
-  state.tarefas.push({
-    id: Date.now(), titulo,
+  await db.from('tarefas').insert({
+    titulo,
     cliente: document.getElementById('nt-cliente').value,
     resp: document.getElementById('nt-resp').value,
     prazo: document.getElementById('nt-prazo').value || '—',
     coluna: document.getElementById('nt-coluna').value
   });
-  saveState();
   closeModal('modal-add-tarefa');
-  renderTarefas();
+  await refresh(renderTarefas);
 }
 
-function addAsset() {
-  state.assets.push({
+async function addAsset() {
+  await db.from('assets').insert({
     nome: document.getElementById('na-nome').value,
     cliente: document.getElementById('na-cliente').value,
     tipo: document.getElementById('na-tipo').value,
@@ -1938,9 +1999,8 @@ function addAsset() {
     link: document.getElementById('na-link').value,
     data: new Date().toLocaleDateString('pt-BR')
   });
-  saveState();
   closeModal('modal-add-asset');
-  renderAssets();
+  await refresh(renderAssets);
 }
 
 // =============================================================
@@ -2019,8 +2079,45 @@ function atualizarSelects() {
 // =============================================================
 // INIT
 // =============================================================
-function init() {
-  loadState();
+// =============================================================
+// LOGIN / AUTENTICAÇÃO
+// =============================================================
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+  if (!email || !pass) { errEl.textContent = 'Preencha e-mail e senha.'; errEl.style.display = 'block'; return; }
+
+  const { error } = await db.auth.signInWithPassword({ email, password: pass });
+  if (error) {
+    errEl.textContent = 'E-mail ou senha incorretos.';
+    errEl.style.display = 'block';
+    return;
+  }
+  await startApp();
+}
+
+async function doLogout() {
+  await db.auth.signOut();
+  location.reload();
+}
+
+async function startApp() {
+  document.getElementById('login-loading').style.display = 'block';
+  const { data: { user } } = await db.auth.getUser();
+  if (user) document.getElementById('user-email').textContent = user.email;
+  await loadAll();
+  atualizarSelects();
+  renderResumo();
+  applyIcons(document);
+  document.getElementById('login-overlay').style.display = 'none';
+}
+
+// =============================================================
+// INIT
+// =============================================================
+async function init() {
   loadSavedColors();
 
   // Data no topbar
@@ -2028,9 +2125,15 @@ function init() {
   document.getElementById('topbar-date').textContent = now.toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
   document.getElementById('banner-mes-label').textContent = now.toLocaleDateString('pt-BR', { month:'long', year:'numeric' }).replace(/^\w/, c => c.toUpperCase());
 
-  atualizarSelects();
-  applyIcons(document);   // popula todos os ícones estáticos
-  renderResumo();
+  applyIcons(document);   // ícones estáticos (sidebar, etc.)
+
+  // Já está logado? Entra direto. Senão, mostra o login.
+  const { data: { session } } = await db.auth.getSession();
+  if (session) {
+    await startApp();
+  } else {
+    document.getElementById('login-overlay').style.display = 'flex';
+  }
 }
 
 init();
