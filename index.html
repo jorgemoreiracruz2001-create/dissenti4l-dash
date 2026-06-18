@@ -726,13 +726,17 @@ label { font-size: 11px; font-weight: 600; color: var(--text-2); display: block;
         <button class="filter-pill" onclick="filtroFin(0,this)">Mês atual</button>
       </div>
 
-      <div class="grid g4" id="fin-kpis" style="margin-bottom:20px;"></div>
+      <div class="grid g4" id="fin-kpis" style="margin-bottom:16px;"></div>
+      <div id="fin-extra" style="margin-bottom:20px;"></div>
 
-      <div class="section-hd"><div class="section-title">Detalhamento</div></div>
+      <div class="section-hd">
+        <div class="section-title">Lançamentos do mês</div>
+        <button class="btn btn-primary" style="font-size:11px;" onclick="openModal('modal-add-lancamento')"><span data-icon="plus"></span> Novo Lançamento</button>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Data</th><th>Descrição</th><th>Cliente</th><th>Tipo</th><th>Valor</th></tr>
+            <tr><th>Data</th><th>Descrição</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th></th></tr>
           </thead>
           <tbody id="tbody-fin"></tbody>
         </table>
@@ -1020,6 +1024,39 @@ label { font-size: 11px; font-weight: 600; color: var(--text-2); display: block;
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modal-add-reuniao')">Cancelar</button>
       <button class="btn btn-primary" onclick="addReuniao()"><span data-icon="plus"></span> Agendar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Lançamento -->
+<div class="modal-overlay" id="modal-add-lancamento">
+  <div class="modal">
+    <div class="modal-title"><span data-icon="dollar"></span> Novo Lançamento</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="nl-tipo"><option value="Entrada">Entrada (recebi)</option><option value="Saída">Saída (gastei)</option></select>
+      </div>
+      <div class="form-group">
+        <label>Valor (R$)</label>
+        <input type="number" id="nl-valor" placeholder="0" step="0.01">
+      </div>
+      <div class="form-group" style="grid-column:1/-1;">
+        <label>Descrição</label>
+        <input type="text" id="nl-desc" placeholder="Ex: Mensalidade Clínica / Ferramenta n8n">
+      </div>
+      <div class="form-group">
+        <label>Cliente (opcional)</label>
+        <select id="nl-cliente"><option value="—">— Nenhum / Custo da agência</option></select>
+      </div>
+      <div class="form-group">
+        <label>Data</label>
+        <input type="date" id="nl-data">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-lancamento')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addLancamento()"><span data-icon="plus"></span> Lançar</button>
     </div>
   </div>
 </div>
@@ -1711,33 +1748,94 @@ function renderCampanhas() {
 // =============================================================
 function renderFinanceiro(dias) {
   const fin = state.financeiro;
-  const entradas = fin.filter(f=>f.valor>0).reduce((a,f)=>a+f.valor,0);
-  const saidas   = Math.abs(fin.filter(f=>f.valor<0).reduce((a,f)=>a+f.valor,0));
-  const liquido  = entradas - saidas;
+
+  // ---- Movimentação do mês (lançamentos) ----
+  const entradas = fin.filter(f=>f.tipo==='Entrada').reduce((a,f)=>a+Math.abs(f.valor),0);
+  const saidas   = fin.filter(f=>f.tipo==='Saída').reduce((a,f)=>a+Math.abs(f.valor),0);
+  const saldo    = entradas - saidas;   // caixa realizado até agora
+
+  // ---- Recorrência (baseada nos contratos dos clientes ativos) ----
+  const ativosArr = state.clientes.filter(c => !c.arquivado && c.status !== 'Inativo');
+  const ativos = ativosArr.length;
+  const mrr = ativosArr.reduce((a,c)=>a + N(c.valor), 0);
+  const ticket = ativos ? mrr / ativos : 0;
+
+  // ---- Projeção de caixa no fim do mês ----
+  // assume que toda a receita recorrente (MRR) entra e desconta as saídas já lançadas
+  const projecao = mrr - saidas;
+
+  // KPIs principais
   document.getElementById('fin-kpis').innerHTML = [
-    { ic:'dollar', label:'MRR', value:'R$ '+fmt(state.real.mrr||entradas), cls:'success' },
-    { ic:'arrow-up', label:'Entradas', value:'R$ '+fmt(entradas), cls:'success' },
-    { ic:'arrow-down', label:'Saídas', value:'R$ '+fmt(saidas), cls:'danger' },
-    { ic:'trending-up', label:'Líquido', value:'R$ '+fmt(liquido), cls: liquido>=0?'success':'danger' },
+    { ic:'dollar',   label:'MRR (recorrente)', value:'R$ '+fmt(mrr), cls:'success', sub:`${ativos} contratos ativos` },
+    { ic:'users',    label:'Clientes ativos',  value: ativos, cls:'', sub:'não arquivados' },
+    { ic:'briefcase',label:'Ticket médio',     value:'R$ '+fmt(ticket), cls:'', sub:'por cliente/mês' },
+    { ic:'trending-up', label:'Saldo do mês',  value:'R$ '+fmt(saldo), cls: saldo>=0?'success':'danger', sub:'entradas − saídas' },
   ].map(k=>`
     <div class="card card-sm">
       <div class="card-label">${icon(k.ic)} ${k.label}</div>
       <div class="card-value ${k.cls}" style="font-size:22px;">${k.value}</div>
+      <div class="card-meta">${k.sub}</div>
     </div>`).join('');
   applyIcons(document.getElementById('fin-kpis'));
 
-  document.getElementById('tbody-fin').innerHTML = fin.map(f=>`
+  // Linha extra: entradas, saídas e projeção de caixa
+  document.getElementById('fin-extra').innerHTML = `
+    <div class="grid g3">
+      <div class="card card-sm">
+        <div class="card-label">${icon('arrow-up')} Entradas recebidas</div>
+        <div class="card-value success" style="font-size:20px;">R$ ${fmt(entradas)}</div>
+      </div>
+      <div class="card card-sm">
+        <div class="card-label">${icon('arrow-down')} Saídas (custos)</div>
+        <div class="card-value danger" style="font-size:20px;">R$ ${fmt(saidas)}</div>
+      </div>
+      <div class="falta-card" style="padding:16px 20px;">
+        <div class="falta-label">${icon('dollar')} Projeção de caixa — fim do mês</div>
+        <div class="falta-value" style="font-size:28px;">R$ ${fmt(projecao)}</div>
+        <div class="falta-sub">Considera todo o MRR entrando e as saídas já lançadas</div>
+      </div>
+    </div>`;
+  applyIcons(document.getElementById('fin-extra'));
+
+  // Tabela de lançamentos
+  document.getElementById('tbody-fin').innerHTML = fin.length ? fin.map(f=>`
     <tr>
-      <td>${f.data}</td><td>${f.desc}</td><td>${f.cliente}</td>
+      <td>${f.data||'—'}</td><td>${f.desc||'—'}</td><td>${f.cliente||'—'}</td>
       <td><span class="badge ${f.tipo==='Entrada'?'badge-green':'badge-red'}">${f.tipo}</span></td>
-      <td style="font-weight:600; color:${f.valor>=0?'var(--success)':'var(--danger)'};">${f.valor>=0?'+':''}R$ ${fmt(Math.abs(f.valor))}</td>
-    </tr>`).join('');
+      <td style="font-weight:600; color:${f.tipo==='Entrada'?'var(--success)':'var(--danger)'};">${f.tipo==='Entrada'?'+':'−'}R$ ${fmt(Math.abs(f.valor))}</td>
+      <td><button class="icon-btn danger" title="Apagar" onclick="deleteLancamento(${f.id})">${icon('trash')}</button></td>
+    </tr>`).join('') : '<tr><td colspan="6" style="text-align:center; color:var(--text-3); padding:24px;">Nenhum lançamento ainda. Clique em "Novo Lançamento".</td></tr>';
+  applyIcons(document.getElementById('tbody-fin'));
 }
 
 function filtroFin(dias, el) {
   document.querySelectorAll('#fin-filters .filter-pill').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   renderFinanceiro(dias);
+}
+
+async function addLancamento() {
+  const valor = +document.getElementById('nl-valor').value || 0;
+  const desc = document.getElementById('nl-desc').value.trim();
+  if (!valor || !desc) { alert('Preencha a descrição e o valor.'); return; }
+  const dataVal = document.getElementById('nl-data').value;
+  const dataFmt = dataVal ? dataVal.split('-').reverse().slice(0,2).join('/') : new Date().toLocaleDateString('pt-BR').slice(0,5);
+  await db.from('financeiro').insert({
+    data: dataFmt,
+    descricao: desc,
+    cliente: document.getElementById('nl-cliente').value || '—',
+    tipo: document.getElementById('nl-tipo').value,
+    valor: Math.abs(valor)
+  });
+  document.getElementById('nl-valor').value = '';
+  document.getElementById('nl-desc').value = '';
+  closeModal('modal-add-lancamento');
+  await refresh(()=>renderFinanceiro(0));
+}
+
+async function deleteLancamento(id) {
+  await db.from('financeiro').delete().eq('id', id);
+  await refresh(()=>renderFinanceiro(0));
 }
 
 // =============================================================
@@ -2074,6 +2172,10 @@ function atualizarSelects() {
   // select que usa o ID do cliente como valor
   const sv = document.getElementById('sel-cliente-view');
   if (sv) sv.innerHTML = '<option value="">Selecione...</option>' + state.clientes.filter(c=>!c.arquivado).map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+
+  // select de lançamento financeiro (opção "nenhum" como padrão)
+  const nl = document.getElementById('nl-cliente');
+  if (nl) nl.innerHTML = '<option value="—">— Nenhum / Custo da agência</option>' + state.clientes.filter(c=>!c.arquivado).map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');
 }
 
 // =============================================================
